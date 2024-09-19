@@ -13,36 +13,37 @@
             <input type="text" id="calc_display" readonly>
         </div>
         <div class="row">
-            <button class="b" id="AC">AC</button>
-            <button class="b">%</button>
-            <button class="ab">/</button>
+            <button class="b" id="AC" onclick="clearDisplay()">AC</button>
+            <button class="b" onclick="appendtoDisplay('%')">%</button>
+            
+            <button class="ab" onclick="appendtoDisplay('/')">/</button>
         </div>
 
         <div class="row">
-            <button>7</button>
-            <button>8</button>
-            <button>9</button>
-            <button class="ab">*</button>
+            <button onclick="appendtoDisplay('7')">7</button>
+            <button onclick="appendtoDisplay('8')">8</button>
+            <button onclick="appendtoDisplay('9')">9</button>
+            <button class="ab" onclick="appendtoDisplay('*')">*</button>
         </div>
 
         <div class="row">
-            <button>4</button>
-            <button>5</button>
-            <button>6</button>
-            <button class="ab">-</button>
+            <button onclick="appendtoDisplay('4')">4</button>
+            <button onclick="appendtoDisplay('5')">5</button>
+            <button onclick="appendtoDisplay('6')">6</button>
+            <button class="ab" onclick="appendtoDisplay('-')">-</button>
         </div>
 
         <div class="row">
-            <button>1</button>
-            <button>2</button>
-            <button>3</button>
-            <button class="ab">+</button>
+            <button onclick="appendtoDisplay('1')">1</button>
+            <button onclick="appendtoDisplay('2')">2</button>
+            <button onclick="appendtoDisplay('3')">3</button>
+            <button class="ab" onclick="appendtoDisplay('+')">+</button>
         </div>
 
         <div class="row">
-            <button class="zero-btn">0</button>
-            <button>.</button>
-            <button class="ab">=</button>
+            <button class="zero-btn" onclick="appendtoDisplay('0')">0</button>
+            <button onclick="appendtoDisplay('.')">.</button>
+            <button class="ab" onclick="calculate()">=</button>
         </div>
 
     </div>
