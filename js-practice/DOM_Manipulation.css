@@ -1,0 +1,28 @@
+#clickedButton {
+  width: 250px;
+  height: 100px;
+  font-size: 2rem;
+  cursor: pointer;
+  color: blanchedalmond;
+  background-color: black;
+}
+
+.alertButton {
+  text-align: center;
+  justify-content: center;
+  padding: 15px;
+  margin: 20px;
+  border: 3px solid black;
+  width: 250px;
+  height: 100px;
+  font-size: 2rem;
+  cursor: pointer;
+  color: yellowgreen;
+  background-color: rgb(172, 42, 42);
+  border-radius: 15px;
+}
+
+#todo{
+  font-size: 5rem;
+  color: rgb(202, 43, 226);
+}
