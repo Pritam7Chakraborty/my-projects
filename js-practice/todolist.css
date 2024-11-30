@@ -113,3 +113,8 @@ ul li span{
 ul li span:hover{
     background: #edeef0 ;
 }
+
+#todo{
+    font-size: 5rem;
+    color: rgb(202, 43, 226);
+  }
