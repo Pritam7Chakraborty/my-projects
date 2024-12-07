@@ -1,11 +1,11 @@
-let randomNumber = Math.random() * 100 + 1;
+let randomNumber = Math.floor(Math.random()*100)+1;
 
 const submit = document.querySelector("#subt");
-const userInput = document.querySelector("#guessField");
-const guesslot = document.querySelector("#guesses");
-const remainingGuess = document.querySelector("#lastResult");
-const lowOrHi = document.querySelector("#lowOrHi");
-const startOver = document.querySelector("#resultParas");
+const userInput = document.querySelector(".guessField");
+const guesslot = document.querySelector(".guesses");
+const remainingGuess = document.querySelector(".lastResult");
+const lowOrHi = document.querySelector(".lowOrHi");
+const startOver = document.querySelector(".resultParas");
 
 const p = document.createElement("p");
 
@@ -17,7 +17,9 @@ let playgame = true;
 if (playgame == true) {
   submit.addEventListener("click", function (e) {
     e.preventDefault();
-    const guess=parseInt(userInput.value);
+    console.log("Submit button clicked");
+    
+    const guess = parseInt(userInput.value);
     console.log(guess);
     validateGuess(guess);
   });
@@ -59,15 +61,38 @@ function checkGuess(guess) {
 
 function displayGuess(guess){
   userInput.value='';
-  guesslot.innerHTML += `${guess}`;
+  guesslot.innerHTML += `${guess},  `;
   numGuess++;
   remainingGuess.innerHTML = `${11-numGuess}`;
 }
 
-function displayMessage(Message) {}
+function displayMessage(message) {
+  lowOrHi.innerHTML=`<h2>${message}</h2>`;
+}
 
-function endgame() {}
+function endgame() {
+  userInput.value='';
+  userInput.setAttribute('disabled', '');
+  p.classList.add('button');
+  p.innerHTML=`<h2 id="newGame">Start new game</h2>`;
+  startOver.appendChild(p);
+  playgame=false;
+  newGame();
+}
 
-function newGame() {}
+function newGame() {
+  const newGameButton = document.querySelector('#newGame');
+  newGameButton.addEventListener('click',function(e){
+  randomNumber = Math.floor(Math.random()*100)+1;
+  prevGuess=[];
+  numGuess=1;
+  lowOrHi.innerHTML='';
+  guesslot.innerHTML='';
+  remainingGuess.innerHTML = `${11-numGuess}`;
+  userInput.removeAttribute('disabled');
+  startOver.removeChild(p);
+  playgame=true;
+  })
+}
 
 
