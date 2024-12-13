@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Snake Mania by Pritam</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body
+    class="bg-gradient-to-r from-green-800 to-gray-900 text-white flex flex-col items-center justify-between min-h-screen"
+  >
+    <h1 class="text-4xl font-bold mt-8">Snake Mania</h1>
+
+    <!-- Score Display -->
+    <div
+      id="score"
+      class="absolute top-4 left-4 bg-green-700 text-white px-4 py-2 rounded-xl text-lg"
+    >
+      SCORE: 0
+    </div>
+
+    <!-- High Score Display -->
+    <div
+      id="highScore"
+      class="absolute top-4 right-4 bg-green-700 text-white px-4 py-2 rounded-xl text-lg"
+    >
+      HIGH SCORE: 0
+    </div>
+
+    <!-- Game Container -->
+    <div
+      class="relative w-full max-w-4xl h-[500px] bg-green-800 p-4 rounded-3xl shadow-lg flex items-center justify-center mt-6 game-container"
+    >
+      <canvas id="gamecanvas" class="z-10 rounded-3xl"></canvas>
+    </div>
+
+    <!-- Start, Pause, Resume, Restart Buttons -->
+    <div class="mt-4">
+      <button id="startButton" class="bg-green-500 p-3 rounded-xl text-xl mr-4">
+        Start Game
+      </button>
+      <button
+        id="pauseButton"
+        class="bg-yellow-500 p-3 rounded-xl text-xl mr-4 hidden"
+      >
+        Pause Game
+      </button>
+      <button
+        id="resumeButton"
+        class="bg-blue-500 p-3 rounded-xl text-xl mr-4 hidden"
+      >
+        Resume Game
+      </button>
+      <button
+        id="restartButton"
+        class="bg-red-500 p-3 rounded-xl text-xl mr-4 hidden"
+      >
+        Restart Game
+      </button>
+    </div>
+
+    <!-- Difficulty Level Dropdown -->
+    <div class="mt-4">
+      <label for="difficulty" class="text-lg">Difficulty: </label>
+      <select id="difficulty" class="bg-green-500 p-3 rounded-xl text-xl">
+        <option value="medium">Medium</option>
+        <option value="easy">Easy</option>
+        <option value="hard">Hard</option>
+      </select>
+    </div>
+
+    <!-- Reset High Score Button -->
+    <button id="resetHighScore" class="bg-red-500 p-3 rounded-xl text-xl mt-4">
+      Reset High Score
+    </button>
+
+    <!-- Game Over Overlay -->
+    <div
+      id="gameOverOverlay"
+      class="hidden fixed top-0 left-0 w-full h-full bg-black bg-opacity-70 flex flex-col items-center justify-center"
+    >
+      <div class="bg-green-700 text-white p-8 rounded-xl text-3xl">
+        <p id="scoreOverlay">Your Score: 0</p>
+        <p id="highScoreOverlay">Highscore: 0</p>
+        <button
+          id="restartButtonOverlay"
+          class="bg-yellow-500 p-3 rounded-xl text-xl mt-4"
+        >
+          Restart
+        </button>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="w-full text-center py-4 mt-6 bg-gray-900 text-sm">
+      <p>Developed by Pritam Chakraborty</p>
+    </footer>
+
+    <script src="snake_game.js"></script>
+  </body>
+</html>
