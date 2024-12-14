@@ -40,6 +40,12 @@
       />
       <!-- Canvas for Snake Game -->
       <canvas id="gamecanvas" class="z-10 rounded-3xl"></canvas>
+
+      <!-- Special Food (Hidden by default) -->
+      <div
+        id="specialFood"
+        class="absolute w-5 h-5 bg-gradient-to-r from-yellow-500 to-red-500 rounded-full hidden"
+      ></div>
     </div>
 
     <!-- Start, Pause, Resume, Restart Buttons -->
@@ -80,7 +86,7 @@
     <!-- Game Over Overlay -->
     <div
       id="gameOverOverlay"
-      class="absolute top-0 left-0 w-full h-full bg-black bg-opacity-70 flex items-center justify-center hidden"
+      class="absolute top-0 left-0 w-full h-full bg-black bg-opacity-70 items-center justify-center hidden"
     >
       <div class="text-white text-center">
         <h2 class="text-3xl mb-4">Game Over</h2>

@@ -17,6 +17,12 @@ let gameOverSound = new Audio("death.mp3");
 let movementSound = new Audio("movement.mp3");
 let banckgroundMusic = new Audio("phonk-brazilian-phonk-music-253422.mp3");
 
+// Variables for special food
+let specialFood = document.getElementById("specialFood");
+let specialFoodX = 0;
+let specialFoodY = 0;
+let specialFoodExists = false;
+
 // Constants for grid size
 const gridSize = 20;
 const numRows = Math.floor(canvas.height / gridSize);
@@ -52,7 +58,6 @@ function stopbanckgroundMusic() {
 function drawSnake() {
   snake.forEach((segment, index) => {
     if (index === 0) {
-      // Create gradient for snake head
       const gradient = ctx.createLinearGradient(
         segment.x * gridSize,
         segment.y * gridSize,
@@ -63,14 +68,9 @@ function drawSnake() {
       gradient.addColorStop(1, "cyan");
       ctx.fillStyle = gradient;
     } else {
-      ctx.fillStyle = "violet"; // Violet for body segments
+      ctx.fillStyle = "violet";
     }
-    ctx.fillRect(
-      segment.x * gridSize,
-      segment.y * gridSize,
-      gridSize,
-      gridSize
-    );
+    ctx.fillRect(segment.x * gridSize, segment.y * gridSize, gridSize, gridSize);
   });
 }
 
@@ -116,7 +116,32 @@ function drawFood() {
   ctx.fillRect(food.x * gridSize, food.y * gridSize, gridSize, gridSize);
 }
 
-// Show Game Over Alert
+// Generate special food
+function generateSpecialFood() {
+  if (!specialFoodExists) {
+    specialFoodX = Math.floor(Math.random() * (canvas.width / gridSize)) * gridSize;
+    specialFoodY = Math.floor(Math.random() * (canvas.height / gridSize)) * gridSize;
+    specialFood.style.left = specialFoodX + "px";
+    specialFood.style.top = specialFoodY + "px";
+    specialFood.style.display = "block";
+    specialFoodExists = true;
+  }
+}
+
+// Check if snake eats special food
+function checkForSpecialFood() {
+  const head = snake[0];
+  if (head.x * gridSize === specialFoodX && head.y * gridSize === specialFoodY) {
+    specialFoodExists = false;
+    specialFood.style.display = "none";
+    snake.push({ x: head.x, y: head.y });
+    document.getElementById("score").textContent = `SCORE: ${snake.length - 1}`;
+    return true;
+  }
+  return false;
+}
+
+// Show game over
 function showGameOver() {
   stopbanckgroundMusic();
   playGameOverSound();
@@ -126,19 +151,17 @@ function showGameOver() {
   resetGame();
 }
 
-// Update High Score
+// Update high score
 function updateHighScore() {
   const currentScore = snake.length - 1;
   if (currentScore > highScore) {
     highScore = currentScore;
     localStorage.setItem("highScore", highScore);
-    document.getElementById(
-      "highScore"
-    ).textContent = `HIGH SCORE: ${highScore}`;
+    document.getElementById("highScore").textContent = `HIGH SCORE: ${highScore}`;
   }
 }
 
-// Reset Game
+// Reset game
 function resetGame() {
   snake = [{ x: 10, y: 10 }];
   direction = "RIGHT";
@@ -150,22 +173,23 @@ function resetGame() {
   document.getElementById("restartButton").classList.add("hidden");
 }
 
-// Main game loop
+// Game loop
 function gameloop() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  // Check collisions
   if (
     snake[0].x < 0 ||
     snake[0].x >= numCols ||
     snake[0].y < 0 ||
     snake[0].y >= numRows ||
-    snake
-      .slice(1)
-      .some((segment) => segment.x === snake[0].x && segment.y === snake[0].y)
+    snake.slice(1).some((segment) => segment.x === snake[0].x && segment.y === snake[0].y)
   ) {
     showGameOver();
     return;
+  }
+
+  if (checkForSpecialFood()) {
+    generateSpecialFood(); // Regenerate special food after being eaten
   }
 
   drawFood();
@@ -193,7 +217,7 @@ document.addEventListener("keydown", (e) => {
   }
 });
 
-// Adjust game speed based on difficulty
+// Adjust speed based on difficulty
 function adjustSpeed() {
   if (difficulty === "easy") {
     speed = 120;
@@ -239,14 +263,12 @@ document.getElementById("restartButton").addEventListener("click", () => {
   playbanckgroundMusic();
 });
 
-// Reset High Score button
-document
-  .getElementById("resetHighScoreButton")
-  .addEventListener("click", () => {
-    localStorage.removeItem("highScore");
-    highScore = 0;
-    document.getElementById("highScore").textContent = "HIGH SCORE: 0";
-  });
+// Reset high score
+document.getElementById("resetHighScoreButton").addEventListener("click", () => {
+  localStorage.removeItem("highScore");
+  highScore = 0;
+  document.getElementById("highScore").textContent = "HIGH SCORE: 0";
+});
 
 // Difficulty level change
 document.getElementById("difficulty").addEventListener("change", (e) => {
