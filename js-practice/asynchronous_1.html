@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>asynchronous 1</title>
+</head>
+<body>
+    <h1>hii guys Press this button below</h1>
+    <button id="clickMe">Click Me</button>
+    <p id="message"></p>
+    <script>
+        const clickMe = document.getElementById("clickMe");
+        const message = document.getElementById("message");
+        clickMe.addEventListener("click",function(){
+
+        
+        message.innerHTML= "Processing";
+        setTimeout(()=>{
+            document.getElementById("message").innerHTML="Done!!!"
+        
+        },2000);
+    });
+    </script>
+</body>
+</html>

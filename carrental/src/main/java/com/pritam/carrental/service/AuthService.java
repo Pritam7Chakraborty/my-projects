@@ -1,65 +1,57 @@
 package com.pritam.carrental.service;
 
+import com.pritam.carrental.dto.UserDTO;
 import com.pritam.carrental.entity.User;
+import com.pritam.carrental.enums.Role;
 import com.pritam.carrental.repository.UserRepository;
-import com.pritam.carrental.security.CustomUserDetailsService;
-import com.pritam.carrental.security.JwtUtil;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.userdetails.UserDetails;
+import com.pritam.carrental.security.JwtHelper;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
-
 @Service
+@RequiredArgsConstructor
+@Slf4j
 public class AuthService {
 
-    @Autowired
-    private AuthenticationManager authenticationManager;
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final JwtHelper jwtHelper;
 
-    @Autowired
-    private JwtUtil jwtUtil;
-
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private PasswordEncoder passwordEncoder;
-
-    @Autowired
-    private CustomUserDetailsService userDetailsService;
-
-    public String login(User userRequest) {
-        String email = userRequest.getEmail();
-        String password = userRequest.getPassword();
-
-        if (email == null || password == null || email.isEmpty() || password.isEmpty()) {
-            throw new IllegalArgumentException("Email and password must not be empty");
+    public String signup(UserDTO dto) {
+        if (userRepository.existsByEmail(dto.getEmail())) {
+            log.warn("Signup failed: email {} already registered", dto.getEmail());
+            throw new RuntimeException("Email already registered");
         }
 
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(email, password)
-        );
+        User user = User.builder()
+                .email(dto.getEmail())
+                .password(passwordEncoder.encode(dto.getPassword()))
+                .role(dto.getRole() == null ? Role.ROLE_USER : dto.getRole())
+                .build();
 
-        UserDetails userDetails = userDetailsService.loadUserByUsername(email);
+        userRepository.save(user);
+        log.info("New user registered: {}", user.getEmail());
 
-        return jwtUtil.generateToken(userDetails.getUsername());
+        return "User registered successfully";
     }
 
-    public String signup(User user) {
-        if (user.getEmail() == null || user.getPassword() == null || user.getEmail().isEmpty() || user.getPassword().isEmpty()) {
-            throw new IllegalArgumentException("Email and password must not be empty");
+    public String login(UserDTO dto) {
+        User user = userRepository.findByEmail(dto.getEmail())
+                .orElseThrow(() -> {
+                    log.warn("Login failed: user {} not found", dto.getEmail());
+                    return new RuntimeException("Invalid email or password");
+                });
+
+        if (!passwordEncoder.matches(dto.getPassword(), user.getPassword())) {
+            log.warn("Login failed: incorrect password for {}", dto.getEmail());
+            throw new RuntimeException("Invalid email or password");
         }
 
-        Optional<User> existingUser = userRepository.findByEmail(user.getEmail());
-        if (existingUser.isPresent()) {
-            throw new RuntimeException("Email already exists");
-        }
+        String token = jwtHelper.generateToken(user);
+        log.info("User logged in: {}", dto.getEmail());
 
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
-        userRepository.save(user);
-        return jwtUtil.generateToken(user.getEmail());
+        return token;
     }
 }

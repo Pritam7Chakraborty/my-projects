@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -23,7 +24,7 @@ public class JwtFilter implements Filter {
     private JwtUtil jwtUtil;
 
     @Autowired
-    private CustomUserDetailsService userDetailsService; // Ensure you have this to load user details
+    private CustomUserDetailsService userDetailsService;
 
     private static final String[] PUBLIC_ENDPOINTS = {
             "/api/auth/login",
@@ -44,40 +45,49 @@ public class JwtFilter implements Filter {
         HttpServletRequest httpRequest = (HttpServletRequest) request;
         HttpServletResponse httpResponse = (HttpServletResponse) response;
 
-        // Skip JWT validation for public paths
-        if (isPublicPath(httpRequest.getRequestURI())) {
+        String requestURI = httpRequest.getRequestURI();
+
+        // Skip JWT check for public endpoints
+        if (isPublicPath(requestURI)) {
             chain.doFilter(request, response);
             return;
         }
 
-        // Get token from the Authorization header
-        String token = httpRequest.getHeader("Authorization");
-        if (token != null && token.startsWith("Bearer ")) {
-            token = token.substring(7); // Remove "Bearer " prefix
+        String authHeader = httpRequest.getHeader("Authorization");
+
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            String token = authHeader.substring(7); // Remove 'Bearer '
+
             try {
                 String username = jwtUtil.extractUsername(token);
-                if (jwtUtil.isTokenValid(token, username)) {
-                    // **Key Step:** Load user details and set authentication into the SecurityContext
-                    UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-                    UsernamePasswordAuthenticationToken authToken =
-                            new UsernamePasswordAuthenticationToken(
-                                    userDetails,
-                                    null,
-                                    userDetails.getAuthorities());
-                    SecurityContextHolder.getContext().setAuthentication(authToken);
-                    chain.doFilter(request, response);
-                    return;
-                } else {
-                    httpResponse.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid token");
-                    return;
+
+                if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                    if (jwtUtil.isTokenValid(token, username)) {
+                        UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+
+                        UsernamePasswordAuthenticationToken authToken =
+                                new UsernamePasswordAuthenticationToken(
+                                        userDetails,
+                                        null,
+                                        userDetails.getAuthorities()
+                                );
+
+                        authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(httpRequest));
+                        SecurityContextHolder.getContext().setAuthentication(authToken);
+                    }
                 }
+
+                chain.doFilter(request, response);
+                return;
+
             } catch (Exception e) {
+                e.printStackTrace(); // Optional: log the error
                 httpResponse.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid token");
                 return;
             }
+
         } else {
             httpResponse.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Authorization header must be provided");
-            return;
         }
     }
 }

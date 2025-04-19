@@ -1,59 +1,84 @@
 package com.pritam.carrental.service;
 
+import com.pritam.carrental.dto.CarVariantRequestDTO;
+import com.pritam.carrental.dto.CarVariantResponseDTO;
 import com.pritam.carrental.entity.CarCompany;
 import com.pritam.carrental.entity.CarVariant;
 import com.pritam.carrental.repository.CarCompanyRepository;
 import com.pritam.carrental.repository.CarVariantRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import jakarta.persistence.EntityNotFoundException;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class CarVariantServiceImpl implements CarVariantService {
-    @Autowired
-    private CarVariantRepository carVariantRepository;
-    @Autowired
-    private CarCompanyRepository carCompanyRepository;
+
+    private final CarVariantRepository carVariantRepository;
+    private final CarCompanyRepository carCompanyRepository;
+
     @Override
-    public CarVariant createCarVariant (CarVariant carVariant){
-        Long companyId = carVariant.getCarCompany().getId();
-        CarCompany company= carCompanyRepository.findById(companyId).orElseThrow(()-> new RuntimeException("Car company not found with ID: " + companyId));
-        carVariant.setCarCompany(company);
-        return carVariantRepository.save(carVariant);
-    }
-    @Override
-    public List<CarVariant> getAllVariants() {
-        return carVariantRepository.findAll();
+    public CarVariantResponseDTO createCarVariant(CarVariantRequestDTO dto) {
+        CarCompany company = carCompanyRepository.findById(dto.getCarCompanyId())
+                .orElseThrow(() -> new EntityNotFoundException("Car company not found"));
+
+        CarVariant variant = CarVariant.builder()
+                .name(dto.getName())
+                .fuelType(dto.getFuelType())
+                .transmissionType(dto.getTransmissionType())
+                .carCompany(company)
+                .build();
+
+        return toDTO(carVariantRepository.save(variant));
     }
 
     @Override
-    public List<CarVariant> getVariantsByCompanyId(Long companyId) {
-        return carVariantRepository.findByCarCompanyId(companyId);
+    public List<CarVariantResponseDTO> getAllVariants() {
+        return carVariantRepository.findAll()
+                .stream().map(this::toDTO).collect(Collectors.toList());
     }
 
     @Override
-    public CarVariant updateCarVariant(Long id, CarVariant updatedVariant) {
+    public List<CarVariantResponseDTO> getVariantsByCompanyId(Long companyId) {
+        return carVariantRepository.findByCarCompanyId(companyId)
+                .stream().map(this::toDTO).collect(Collectors.toList());
+    }
+
+    @Override
+    public CarVariantResponseDTO updateCarVariant(Long id, CarVariantRequestDTO dto) {
         CarVariant existing = carVariantRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Variant not found with ID: " + id));
+                .orElseThrow(() -> new EntityNotFoundException("Variant not found"));
 
-        existing.setName(updatedVariant.getName());
-        existing.setFuelType(updatedVariant.getFuelType());
-        existing.setTransmissionType(updatedVariant.getTransmissionType());
+        CarCompany company = carCompanyRepository.findById(dto.getCarCompanyId())
+                .orElseThrow(() -> new EntityNotFoundException("Car company not found"));
 
-        Long companyId = updatedVariant.getCarCompany().getId();
-        CarCompany company = carCompanyRepository.findById(companyId)
-                .orElseThrow(() -> new RuntimeException("Car company not found with ID: " + companyId));
+        existing.setName(dto.getName());
+        existing.setFuelType(dto.getFuelType());
+        existing.setTransmissionType(dto.getTransmissionType());
         existing.setCarCompany(company);
 
-        return carVariantRepository.save(existing);
+        return toDTO(carVariantRepository.save(existing));
     }
 
     @Override
     public void deleteCarVariant(Long id) {
         if (!carVariantRepository.existsById(id)) {
-            throw new RuntimeException("Variant not found with ID: " + id);
+            throw new EntityNotFoundException("Variant not found with ID: " + id);
         }
         carVariantRepository.deleteById(id);
+    }
+
+    private CarVariantResponseDTO toDTO(CarVariant variant) {
+        return CarVariantResponseDTO.builder()
+                .id(variant.getId())
+                .name(variant.getName())
+                .fuelType(variant.getFuelType())
+                .transmissionType(variant.getTransmissionType())
+                .carCompanyId(variant.getCarCompany().getId())
+                .carCompanyName(variant.getCarCompany().getName())
+                .build();
     }
 }

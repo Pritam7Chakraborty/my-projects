@@ -1,0 +1,32 @@
+html {
+  margin: 0;
+  
+}
+
+.canvas{
+    height: 100px auto 100px;
+    width: 80%;
+    text-align: center;
+}
+
+.box{
+    height: 100px;
+    width: 100px;
+    border: solid black 2px;
+    display: inline-block;
+}
+#grey {
+    background: grey;
+}
+
+#yellow {
+    background: yellow;
+}
+
+#white {
+    background: white;
+}
+
+#blue {
+    background: blue;
+}

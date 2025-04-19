@@ -1,44 +1,58 @@
 package com.pritam.carrental.controller;
 
-import com.pritam.carrental.entity.CarVariant;
+import com.pritam.carrental.dto.CarVariantRequestDTO;
+import com.pritam.carrental.dto.CarVariantResponseDTO;
+import com.pritam.carrental.payload.ApiResponse;
 import com.pritam.carrental.service.CarVariantService;
-import org.springframework.beans.factory.annotation.Autowired;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/variants")
 @CrossOrigin(origins = "*")
+@RequiredArgsConstructor
 public class CarVariantController {
 
-    @Autowired
-    private CarVariantService carVariantService;
+    private final CarVariantService carVariantService;
 
     @PostMapping
-    public ResponseEntity<CarVariant> create(@RequestBody CarVariant variant) {
-        return ResponseEntity.ok(carVariantService.createCarVariant(variant));
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<CarVariantResponseDTO>> create(@Valid @RequestBody CarVariantRequestDTO variant) {
+        CarVariantResponseDTO created = carVariantService.createCarVariant(variant);
+        return ResponseEntity.ok(ApiResponse.success("Variant created successfully", created));
     }
 
     @GetMapping
-    public ResponseEntity<List<CarVariant>> getAll() {
-        return ResponseEntity.ok(carVariantService.getAllVariants());
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
+    public ResponseEntity<ApiResponse<List<CarVariantResponseDTO>>> getAll() {
+        List<CarVariantResponseDTO> variants = carVariantService.getAllVariants();
+        return ResponseEntity.ok(ApiResponse.success("All variants fetched", variants));
     }
 
     @GetMapping("/company/{companyId}")
-    public ResponseEntity<List<CarVariant>> getByCompany(@PathVariable Long companyId) {
-        return ResponseEntity.ok(carVariantService.getVariantsByCompanyId(companyId));
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
+    public ResponseEntity<ApiResponse<List<CarVariantResponseDTO>>> getByCompany(@PathVariable Long companyId) {
+        List<CarVariantResponseDTO> variants = carVariantService.getVariantsByCompanyId(companyId);
+        return ResponseEntity.ok(ApiResponse.success("Variants by company fetched", variants));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<CarVariant> update(@PathVariable Long id, @RequestBody CarVariant variant) {
-        return ResponseEntity.ok(carVariantService.updateCarVariant(id, variant));
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<CarVariantResponseDTO>> update(@PathVariable Long id,
+                                                                     @Valid @RequestBody CarVariantRequestDTO variant) {
+        CarVariantResponseDTO updated = carVariantService.updateCarVariant(id, variant);
+        return ResponseEntity.ok(ApiResponse.success("Variant updated successfully", updated));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<Void>> delete(@PathVariable Long id) {
         carVariantService.deleteCarVariant(id);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(ApiResponse.success("Variant deleted successfully", null));
     }
 }
