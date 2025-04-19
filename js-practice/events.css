@@ -1,0 +1,19 @@
+.container{
+    width: 100%;
+    min-height: 100vh;
+    background: linear-gradient(135deg,#153677,#4e085f);
+    padding: 10px;
+}
+
+#toggleParagraph {
+    display: block;
+    font-size: 1.2rem;
+    margin: 20px 0;
+}
+button {
+    padding: 10px 20px;
+    font-size: 1rem;
+    cursor: pointer;
+    background: #ff5945;
+    color: #fff;
+}

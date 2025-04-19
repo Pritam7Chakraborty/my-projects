@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit and Remove DOM Elements Example</title>
+    <style>
+        .message {
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            background-color: #f9f9f9;
+        }
+    </style>
+</head>
+<body>
+
+    <button id="createMessageButton">Create Message</button>
+    <div id="messageContainer"></div>
+    <div id="message" class="message">This is a message to edit.</div>
+    <button id="editMessageButton">Edit Message</button>
+    <button id="removeMessageButton">Remove Message</button>
+
+    <script>
+        const messageDiv = document.getElementById('message');
+        const editButton = document.getElementById('editMessageButton');
+        const removeButton = document.getElementById('removeMessageButton');
+        // Get references to the button and message container
+const button = document.getElementById('createMessageButton');
+const messageContainer = document.getElementById('messageContainer');
+
+// Function to create and display a new message
+button.addEventListener('click', () => {
+    // Step 1: Create a new <div> element
+    const newMessage = document.createElement('div');
+    
+    // Step 2: Set attributes and content
+    newMessage.setAttribute('class', 'message');
+    newMessage.innerText = 'This is a dynamically created message!';
+    
+    // Step 3: Append the new message to the container
+    messageContainer.appendChild(newMessage);
+});
+
+
+        editButton.addEventListener('click', () => {
+            // Edit the text of the message
+            messageDiv.innerText = 'fuck you';
+        });
+
+        removeButton.addEventListener('click', () => {
+            // Remove the message element
+            messageDiv.remove();
+        });
+    </script>
+</body>
+</html>

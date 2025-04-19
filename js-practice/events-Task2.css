@@ -1,0 +1,21 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 20px;
+    background: rgb(67, 63, 63);
+    color: white;
+}
+form {
+    margin-bottom: 20px;
+}
+ul {
+    list-style: none;
+    padding: 0;
+}
+li {
+    margin: 5px 0;
+    padding: 5px 10px;
+    background-color: #f0f0f0;
+    border-radius: 5px;
+    cursor: pointer;
+    color: #ff5945;
+}

@@ -1,0 +1,97 @@
+/*HOME*/
+@import url("https://fonts.googleapis.com/css2?family=Fira+Sans&display=swap");
+@import url('https://fonts.googleapis.com/css2?family=Source+Code+Pro:ital,wght@0,300;1,300&display=swap');
+
+* {
+  margin: 0;
+  padding: 0;
+}
+
+.sidebar {
+  background-color: rgb(221, 211, 211);
+  width: 434px;
+  font-family: "Fira Sans", sans-serif;
+  height: 100vh;
+}
+
+.sidebar nav {
+  padding: 40px;
+}
+
+.sidebar nav li {
+  list-style: none;
+  font-size: 25px;
+  padding: 29px 0;
+}
+
+.sidebar nav li a{
+  text-decoration: none;
+  color: black;
+}
+.main {
+  /*background-color: yellowgreen;*/
+  width: 90vw;
+}
+
+.container {
+  display: flex;
+}
+
+.info {
+  /*background-color: pink;*/
+  height: 58vh;
+  width: 80vw;
+  margin: 144px auto;
+  display: flex;
+  justify-content: space-around;
+}
+
+.devinfo
+{
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  font-family: "Source Code Pro", monospace;
+}
+.hello{
+  font-size: 65px;
+  
+}
+
+.name{
+  font-size: 50px;
+  font-weight: bold;
+  font-family: "Fira Sans", sans-serif;
+}
+
+.about{
+  font-size: 45px;
+}
+
+.buttons{
+  margin-top: 34px ;
+}
+.buttons button{
+  padding: 9px 14px;
+  border-radius: 22px; 
+  color: white;
+  background-color: dodgerblue;
+  font-size: 21px;
+  margin: 0 3 px;
+  cursor: pointer;
+}
+.buttons button:hover
+{
+  background: white;
+  color: dodgerblue;
+}
+
+.devpics img{
+  height: 58vh;
+}
+
+
+/*CONTACT ME*/
+.contactform{
+  
+}
