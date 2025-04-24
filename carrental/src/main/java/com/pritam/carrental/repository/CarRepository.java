@@ -8,4 +8,6 @@ import java.util.List;
 
 public interface CarRepository extends JpaRepository<Car,Long> {
     List<Car> findByStatus(CarStatus status);
+    List<Car> findByCarVariantId(Long variantId);
+    List<Car> findByCarVariantIdAndStatus(Long variantId, CarStatus status);
 }

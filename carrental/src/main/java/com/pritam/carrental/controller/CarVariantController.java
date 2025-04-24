@@ -14,7 +14,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/variants")
-@CrossOrigin(origins = "*")
 @RequiredArgsConstructor
 public class CarVariantController {
 

@@ -2,105 +2,99 @@ package com.pritam.carrental.service;
 
 import com.pritam.carrental.dto.BookingRequestDTO;
 import com.pritam.carrental.dto.BookingResponseDTO;
-import com.pritam.carrental.entity.*;
+import com.pritam.carrental.entity.Booking;
+import com.pritam.carrental.entity.Car;
+import com.pritam.carrental.entity.Customer;
+import com.pritam.carrental.entity.BookingStatus;
+import com.pritam.carrental.entity.CarStatus;
 import com.pritam.carrental.repository.BookingRepository;
 import com.pritam.carrental.repository.CarRepository;
 import com.pritam.carrental.repository.CustomerRepository;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.time.temporal.ChronoUnit;
+import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class BookingServiceImpl implements BookingService {
 
     private final BookingRepository bookingRepository;
-    private final CustomerRepository customerRepository;
     private final CarRepository carRepository;
+    private final CustomerRepository customerRepository;
 
     @Override
-    public BookingResponseDTO createBooking(BookingRequestDTO dto) {
-        Car car = carRepository.findById(dto.getCarId()).orElseThrow(() -> new EntityNotFoundException("Car not found"));
-        Customer customer = customerRepository.findById(dto.getCustomerId()).orElseThrow(() -> new EntityNotFoundException("Customer not found"));
+    public BookingResponseDTO createBooking(BookingRequestDTO requestDTO) {
+        Car car = carRepository.findById(requestDTO.getCarId())
+                .orElseThrow(() -> new RuntimeException("Car not found"));
 
-        var overlaps = bookingRepository.findOverlappingBookings(car.getId(), dto.getStartDate(), dto.getEndDate());
-        if (!overlaps.isEmpty()) {
-            throw new RuntimeException("Car is already booked during the selected period.");
+        if (!car.getStatus().equals(CarStatus.AVAILABLE)) {
+            throw new RuntimeException("Car is not available for booking");
         }
 
-        long days = ChronoUnit.DAYS.between(dto.getStartDate(), dto.getEndDate()) + 1;
-        double pricePerDay = car.getDailyRentPrice();
+        Customer customer = customerRepository.findById(requestDTO.getCustomerId())
+                .orElseThrow(() -> new RuntimeException("Customer not found"));
 
         Booking booking = Booking.builder()
-                .startDate(dto.getStartDate())
-                .endDate(dto.getEndDate())
                 .car(car)
                 .customer(customer)
-                .totalAmount(days * pricePerDay)
-                .status(BookingStatus.PENDING)
+                .startDate(requestDTO.getStartDate())
+                .endDate(requestDTO.getEndDate())
+                .totalAmount(requestDTO.getTotalAmount())
+                .bookingDate(LocalDate.now())
+                .status(BookingStatus.CONFIRMED)
                 .build();
 
-        return toDTO(bookingRepository.save(booking));
+        car.setStatus(CarStatus.BOOKED);
+        carRepository.save(car);
+
+        Booking saved = bookingRepository.save(booking);
+        log.info("Booking created: {}", saved.getId());
+
+        return toDTO(saved);
     }
 
     @Override
     public BookingResponseDTO getBookingById(Long id) {
-        return bookingRepository.findById(id)
-                .map(this::toDTO)
-                .orElse(null);
+        Booking booking = bookingRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Booking not found"));
+        return toDTO(booking);
     }
 
     @Override
     public List<BookingResponseDTO> getAllBookings() {
-        return bookingRepository.findAll().stream().map(this::toDTO).collect(Collectors.toList());
-    }
-
-    @Override
-    public BookingResponseDTO updateBooking(Long id, BookingRequestDTO dto) {
-        Booking booking = bookingRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Booking not found"));
-
-        Car car = carRepository.findById(dto.getCarId()).orElseThrow(() -> new EntityNotFoundException("Car not found"));
-        Customer customer = customerRepository.findById(dto.getCustomerId()).orElseThrow(() -> new EntityNotFoundException("Customer not found"));
-
-        booking.setStartDate(dto.getStartDate());
-        booking.setEndDate(dto.getEndDate());
-        booking.setCar(car);
-        booking.setCustomer(customer);
-
-        long days = ChronoUnit.DAYS.between(dto.getStartDate(), dto.getEndDate()) + 1;
-        booking.setTotalAmount(days * car.getDailyRentPrice());
-
-        return toDTO(bookingRepository.save(booking));
+        return bookingRepository.findAll().stream()
+                .map(this::toDTO)
+                .collect(Collectors.toList());
     }
 
     @Override
     public void deleteBooking(Long id) {
+        Booking booking = bookingRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Booking not found"));
+
+        Car car = booking.getCar();
+        car.setStatus(CarStatus.AVAILABLE); // make car available again
+        carRepository.save(car);
+
         bookingRepository.deleteById(id);
     }
 
-    @Override
-    public BookingResponseDTO updateBookingStatus(Long id, BookingStatus status) {
-        Booking booking = bookingRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Booking not found"));
-        booking.setStatus(status);
-        return toDTO(bookingRepository.save(booking));
-    }
-
-    private BookingResponseDTO toDTO(Booking booking) {
+    private BookingResponseDTO toDTO(Booking b) {
         return BookingResponseDTO.builder()
-                .id(booking.getId())
-                .startDate(booking.getStartDate())
-                .endDate(booking.getEndDate())
-                .carId(booking.getCar().getId())
-                .carModel(booking.getCar().getName())
-                .customerId(booking.getCustomer().getId())
-                .customerName(booking.getCustomer().getFullName())
-                .totalAmount(booking.getTotalAmount())
-                .status(booking.getStatus())
+                .id(b.getId())
+                .startDate(b.getStartDate())
+                .endDate(b.getEndDate())
+                .customerId(b.getCustomer().getId())
+                .customerName(b.getCustomer().getFullName())
+                .carId(b.getCar().getId())
+                .carModel(b.getCar().getName())
+                .totalAmount(b.getTotalAmount())
+                .status(b.getStatus())
                 .build();
     }
 }

@@ -1,3 +1,4 @@
+
 package com.pritam.carrental.controller;
 
 import com.pritam.carrental.dto.CarRequestDTO;
@@ -13,44 +14,50 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/cars")
+@RequestMapping("/api/cars")
 @RequiredArgsConstructor
 public class CarController {
 
     private final CarService carService;
 
-    @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiResponse<CarResponseDTO>> addCar(@Valid @RequestBody CarRequestDTO car) {
-        CarResponseDTO savedCar = carService.addCar(car);
-        return ResponseEntity.ok(ApiResponse.success("Car added successfully", savedCar));
-    }
-
-    @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
-    public ResponseEntity<ApiResponse<List<CarResponseDTO>>> getAllCars() {
-        List<CarResponseDTO> cars = carService.getAllCars();
-        return ResponseEntity.ok(ApiResponse.success("Cars retrieved successfully", cars));
+    @PostMapping
+    public ResponseEntity<CarResponseDTO> addCar(@Valid @RequestBody CarRequestDTO request) {
+        return ResponseEntity.ok(carService.addCar(request));
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
-    public ResponseEntity<ApiResponse<CarResponseDTO>> getCarById(@PathVariable Long id) {
-        CarResponseDTO car = carService.getCarById(id);
-        return ResponseEntity.ok(ApiResponse.success("Car fetched successfully", car));
+    public ResponseEntity<CarResponseDTO> getCarById(@PathVariable Long id) {
+        return ResponseEntity.ok(carService.getCarById(id));
     }
 
-    @DeleteMapping("/{id}")
+    @GetMapping
+    public ResponseEntity<List<CarResponseDTO>> getAllCars() {
+        return ResponseEntity.ok(carService.getAllCars());
+    }
+
+    @GetMapping("/variant/{variantId}")
+    public ResponseEntity<List<CarResponseDTO>> getCarsByVariant(@PathVariable Long variantId) {
+        return ResponseEntity.ok(carService.getCarsByVariantId(variantId));
+    }
+
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiResponse<Void>> deleteCar(@PathVariable Long id) {
-        carService.deleteCar(id);
-        return ResponseEntity.ok(ApiResponse.success("Car deleted successfully", null));
-    }
-
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiResponse<CarResponseDTO>> updateCar(@PathVariable Long id, @Valid @RequestBody CarRequestDTO updatedCar) {
-        CarResponseDTO result = carService.updateCar(id, updatedCar);
-        return ResponseEntity.ok(ApiResponse.success("Car updated successfully", result));
+    public ResponseEntity<CarResponseDTO> updateCar(@PathVariable Long id, @Valid @RequestBody CarRequestDTO request) {
+        return ResponseEntity.ok(carService.updateCar(id, request));
     }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @DeleteMapping("/{id}")
+    public ResponseEntity<String> deleteCar(@PathVariable Long id) {
+        carService.deleteCar(id);
+        return ResponseEntity.ok("Car deleted successfully");
+    }
+    @GetMapping("/available/variant/{variantId}")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+    public ResponseEntity<ApiResponse<List<CarResponseDTO>>> getAvailableCarsByVariant(@PathVariable Long variantId) {
+        List<CarResponseDTO> cars = carService.getAvailableCarsByVariantId(variantId);
+        return ResponseEntity.ok(ApiResponse.success("Available cars for variant fetched", cars));
+    }
+
 }

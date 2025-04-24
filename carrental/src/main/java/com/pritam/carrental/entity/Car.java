@@ -20,7 +20,7 @@ public class Car {
     private String name;
 
     @NotBlank(message = "Car number is required")
-    private String carNumber;
+    private String numberPlate;
 
     private boolean available;
 

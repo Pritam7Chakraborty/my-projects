@@ -23,12 +23,12 @@ public class CarServiceImpl implements CarService {
 
     @Override
     public CarResponseDTO addCar(CarRequestDTO dto) {
-        CarVariant variant = carVariantRepository.findById(dto.getCarVariantId())
+        CarVariant variant = carVariantRepository.findById(dto.getVariantId())
                 .orElseThrow(() -> new EntityNotFoundException("CarVariant not found"));
 
         Car car = Car.builder()
                 .name(dto.getName())
-                .carNumber(dto.getCarNumber())
+                .numberPlate(dto.getNumberPlate())
                 .available(dto.isAvailable())
                 .fuelType(dto.getFuelType())
                 .color(dto.getColor())
@@ -61,11 +61,11 @@ public class CarServiceImpl implements CarService {
         Car car = carRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Car not found"));
 
-        CarVariant variant = carVariantRepository.findById(dto.getCarVariantId())
+        CarVariant variant = carVariantRepository.findById(dto.getVariantId())
                 .orElseThrow(() -> new EntityNotFoundException("CarVariant not found"));
 
         car.setName(dto.getName());
-        car.setCarNumber(dto.getCarNumber());
+        car.setNumberPlate(dto.getNumberPlate());
         car.setAvailable(dto.isAvailable());
         car.setFuelType(dto.getFuelType());
         car.setColor(dto.getColor());
@@ -94,7 +94,7 @@ public class CarServiceImpl implements CarService {
         return CarResponseDTO.builder()
                 .id(car.getId())
                 .name(car.getName())
-                .carNumber(car.getCarNumber())
+                .carNumber(car.getNumberPlate())
                 .available(car.isAvailable())
                 .fuelType(car.getFuelType())
                 .color(car.getColor())
@@ -105,4 +105,20 @@ public class CarServiceImpl implements CarService {
                 .carVariantName(car.getCarVariant().getName())
                 .build();
     }
+    @Override
+    public List<CarResponseDTO> getCarsByVariantId(Long variantId) {
+        List<Car> cars = carRepository.findByCarVariantId(variantId);
+        return cars.stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<CarResponseDTO> getAvailableCarsByVariantId(Long variantId) {
+        return carRepository.findByCarVariantIdAndStatus(variantId, CarStatus.AVAILABLE)
+                .stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
+
 }

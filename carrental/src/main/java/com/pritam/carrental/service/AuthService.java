@@ -1,8 +1,9 @@
 package com.pritam.carrental.service;
 
 import com.pritam.carrental.dto.UserDTO;
+import com.pritam.carrental.dto.AuthResponseDTO;
 import com.pritam.carrental.entity.User;
-import com.pritam.carrental.enums.Role;
+import com.pritam.carrental.entity.Role;
 import com.pritam.carrental.repository.UserRepository;
 import com.pritam.carrental.security.JwtHelper;
 import lombok.RequiredArgsConstructor;
@@ -19,39 +20,39 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtHelper jwtHelper;
 
-    public String signup(UserDTO dto) {
+    public AuthResponseDTO signup(UserDTO dto) {
         if (userRepository.existsByEmail(dto.getEmail())) {
             log.warn("Signup failed: email {} already registered", dto.getEmail());
-            throw new RuntimeException("Email already registered");
+            throw new IllegalArgumentException("Email is already registered.");
         }
 
         User user = User.builder()
                 .email(dto.getEmail())
                 .password(passwordEncoder.encode(dto.getPassword()))
-                .role(dto.getRole() == null ? Role.ROLE_USER : dto.getRole())
+                .role(dto.getRole() != null ? dto.getRole() : Role.CUSTOMER)
                 .build();
 
         userRepository.save(user);
-        log.info("New user registered: {}", user.getEmail());
+        log.info("User registered: {}", dto.getEmail());
 
-        return "User registered successfully";
+        String token = jwtHelper.generateToken(user.getEmail());
+        return new AuthResponseDTO(user.getEmail(), token, user.getRole().name());
     }
 
-    public String login(UserDTO dto) {
+    public AuthResponseDTO login(UserDTO dto) {
         User user = userRepository.findByEmail(dto.getEmail())
                 .orElseThrow(() -> {
                     log.warn("Login failed: user {} not found", dto.getEmail());
-                    return new RuntimeException("Invalid email or password");
+                    return new IllegalArgumentException("Invalid email or password.");
                 });
 
         if (!passwordEncoder.matches(dto.getPassword(), user.getPassword())) {
-            log.warn("Login failed: incorrect password for {}", dto.getEmail());
-            throw new RuntimeException("Invalid email or password");
+            log.warn("Login failed: invalid password for user {}", dto.getEmail());
+            throw new IllegalArgumentException("Invalid email or password.");
         }
 
-        String token = jwtHelper.generateToken(user);
         log.info("User logged in: {}", dto.getEmail());
-
-        return token;
+        String token = jwtHelper.generateToken(user.getEmail());
+        return new AuthResponseDTO(user.getEmail(), token, user.getRole().name());
     }
 }

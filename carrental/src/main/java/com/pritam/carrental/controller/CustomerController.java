@@ -7,45 +7,37 @@ import com.pritam.carrental.service.CustomerService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/customers")
 @RequiredArgsConstructor
 public class CustomerController {
 
-    private final CustomerService customerService;
+    private final CustomerService service;
 
-    @PostMapping
-    public ResponseEntity<ApiResponse<CustomerResponseDTO>> createCustomer(@Valid @RequestBody CustomerRequestDTO dto) {
-        CustomerResponseDTO customer = customerService.createCustomer(dto);
-        return ResponseEntity.ok(ApiResponse.success("Customer created successfully", customer));
-    }
-
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
     @PutMapping("/{id}")
-    public ResponseEntity<ApiResponse<CustomerResponseDTO>> updateCustomer(@PathVariable Long id,
-                                                                           @Valid @RequestBody CustomerRequestDTO dto) {
-        CustomerResponseDTO updated = customerService.updateCustomer(id, dto);
-        return ResponseEntity.ok(ApiResponse.success("Customer updated successfully", updated));
+    public ResponseEntity<ApiResponse<CustomerResponseDTO>> updateCustomer(
+            @PathVariable Long id,
+            @Valid @RequestBody CustomerRequestDTO dto
+    ) {
+        CustomerResponseDTO updated = service.updateCustomer(id, dto);
+        return ResponseEntity.ok(ApiResponse.success("Customer updated", updated));
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<Void>> deleteCustomer(@PathVariable Long id) {
-        customerService.deleteCustomer(id);
+        service.deleteCustomer(id);
         return ResponseEntity.ok(ApiResponse.success("Customer deleted successfully", null));
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<CustomerResponseDTO>> getCustomer(@PathVariable Long id) {
-        CustomerResponseDTO customer = customerService.getCustomerById(id);
-        return ResponseEntity.ok(ApiResponse.success("Customer retrieved", customer));
-    }
-
-    @GetMapping
-    public ResponseEntity<ApiResponse<List<CustomerResponseDTO>>> getAllCustomers() {
-        List<CustomerResponseDTO> customers = customerService.getAllCustomers();
-        return ResponseEntity.ok(ApiResponse.success("All customers retrieved", customers));
+        CustomerResponseDTO customer = service.getCustomerById(id);
+        return ResponseEntity.ok(ApiResponse.success("Customer fetched", customer));
     }
 }

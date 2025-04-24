@@ -42,4 +42,7 @@ public class Booking {
 
     @Enumerated(EnumType.STRING)
     private BookingStatus status = BookingStatus.PENDING;
+    @NotNull
+    private LocalDate bookingDate;
+
 }

@@ -1,11 +1,13 @@
-// Request DTO
 package com.pritam.carrental.dto;
 
 import lombok.*;
 
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class CarCompanyRequestDTO {
     private String name;
+    private String description;
 }

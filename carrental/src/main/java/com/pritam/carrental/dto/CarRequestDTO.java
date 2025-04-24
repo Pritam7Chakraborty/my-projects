@@ -12,11 +12,11 @@ import lombok.*;
 @Builder
 public class CarRequestDTO {
 
+    @NotBlank(message = "Car number plate is required")
+    private String numberPlate;
+
     @NotBlank(message = "Car name is required")
     private String name;
-
-    @NotBlank(message = "Car number is required")
-    private String carNumber;
 
     private boolean available;
 
@@ -36,5 +36,5 @@ public class CarRequestDTO {
     private CarStatus status;
 
     @NotNull(message = "Car variant ID is required")
-    private Long carVariantId;
+    private Long variantId;
 }
