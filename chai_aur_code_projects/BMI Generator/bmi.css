@@ -1,59 +1,131 @@
-body{
-  background-color: black;
+/* --- General Setup & Variables --- */
+:root {
+    --primary-color: #007bff; /* A nice blue for accents */
+    --background-color: #121829;
+    --container-color: #1e293b;
+    --text-color: #e2e8f0;
+    --text-muted-color: #94a3b8;
+    --border-color: #334155;
 }
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: var(--background-color);
+    color: var(--text-color);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 1rem;
+}
+
+/* --- Main Container --- */
 .container {
-    width: 575px;
-    height: 1000px;
-    background-color: #797978;
-    padding-left: 30px;
+    width: 100%;
+    max-width: 400px; /* Use max-width for responsiveness */
+    background-color: var(--container-color);
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+}
+
+/* --- Typography --- */
+h1 {
+    text-align: center;
+    margin-bottom: 1.5rem;
+    color: var(--text-color);
+    font-weight: 600;
+}
+
+h3 {
+    text-align: center;
+    margin-bottom: 1rem;
+    color: var(--text-muted-color);
+    font-weight: 400;
+    border-top: 1px solid var(--border-color); /* Separator line */
+    padding-top: 1.5rem;
+}
+
+/* --- Form Elements --- */
+form {
     display: flex;
     flex-direction: column;
-    align-items: center;
-    margin-left:auto;
-    margin-right: auto;
-    }
+    gap: 1.5rem; /* Creates space between form elements */
+}
 
-  
-    #height,
-    #weight {
-      width: 150px;
-      height: 25px;
-      margin-top: 30px;
-    }
-    
-    #weight-guide {
-      margin-left: 75px;
-      margin-top: 25px;
-    }
-    
-    #results {
-      font-size: 35px;
-      margin-left: 90px;
-      margin-top: 20px;
-      color: rgb(241, 241, 241);
-    }
-    
-    button {
-      width: 150px;
-      height: 35px;
-      margin-left: 90px;
-      margin-top: 25px;
-      background-color: #fff;
-      padding: 1px 30px;
-      border-radius: 8px;
-      color: #212121;
-      text-decoration: none;
-      border: 2px solid #212121;
-    
-      font-size: 25px;
-    }
-    button:hover{
-      cursor: pointer;
-    }
-  
-    h1 {
-      padding-left: 15px;
-      padding-top: 25px;
-      
-    }
-    
+.input-group {
+    display: flex;
+    flex-direction: column;
+}
+
+label {
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+    color: var(--text-muted-color);
+}
+
+input[type="text"] {
+    width: 100%;
+    padding: 12px;
+    background-color: var(--background-color);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    color: var(--text-color);
+    font-size: 1rem;
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+input[type="text"]::placeholder {
+    color: #64748b;
+}
+
+input[type="text"]:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
+}
+
+/* --- Button Styling --- */
+button {
+    width: 100%;
+    padding: 12px;
+    background-color: var(--primary-color);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.2s;
+}
+
+button:hover {
+    background-color: #0056b3;
+    transform: translateY(-2px); /* Slight lift effect on hover */
+}
+
+/* --- Results & Guide --- */
+#results {
+    text-align: center;
+    font-size: 1.8rem;
+    font-weight: 600;
+    margin-top: 1rem;
+    min-height: 40px; /* Prevents layout shift when result appears */
+    color: var(--primary-color);
+}
+
+#weight-guide {
+    margin-top: 1.5rem;
+}
+
+#weight-guide p {
+    text-align: center;
+    color: var(--text-muted-color);
+    line-height: 1.6;
+}
