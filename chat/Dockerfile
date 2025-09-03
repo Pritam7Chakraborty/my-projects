@@ -1,5 +1,5 @@
-# Stage 1: Build the application using a verified Maven image that includes JDK 21
-FROM maven:3.9.6-eclipse-temurin-21 AS build
+# Stage 1: Use a specific, official Maven image with OpenJDK 21
+FROM maven:3.9-openjdk-21 AS build
 
 WORKDIR /app
 
@@ -9,12 +9,11 @@ COPY src ./src
 RUN mvn clean package -DskipTests
 
 
-# Stage 2: Create the final image using a slim JDK 21 runtime
-FROM eclipse-temurin:21-jdk-slim
+# Stage 2: Use the most common, official slim image for OpenJDK 21
+FROM openjdk:21-slim
 
 WORKDIR /app
 
-# Copy the executable .jar file from the 'build' stage
 COPY --from=build /app/target/*.jar app.jar
 
 EXPOSE 8080
