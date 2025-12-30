@@ -48,6 +48,15 @@ public class SecurityConfig {
                         // VIP Section (Demo)
                         .requestMatchers("/demo/admin/**").hasAuthority("ROLE_ADMIN")
 
+                        // Allow authenticated users (Customers & Admins) to place orders
+                        .requestMatchers(HttpMethod.POST, "/api/orders").authenticated()
+
+                        // 1. Allow Users to View their OWN orders
+                        .requestMatchers(HttpMethod.GET, "/api/orders").authenticated()
+
+                        // 2. Allow Admins to Update Status
+                        .requestMatchers(HttpMethod.POST, "/api/orders/**").hasAuthority("ROLE_ADMIN")
+
                         // Lock everything else
                         .anyRequest().authenticated()
                 )
