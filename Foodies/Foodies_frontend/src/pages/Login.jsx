@@ -33,6 +33,7 @@ const Login = () => {
       
       const token = response.data.token;
       localStorage.setItem("token", token);
+      localStorage.setItem("userEmail", formData.email);
       alert("Login Successful!");
       navigate("/"); 
       
