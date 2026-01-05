@@ -1,2 +1,9 @@
-package com.pritam.foodie.repository;public interface ReviewRepository {
+package com.pritam.foodie.repository;
+
+import com.pritam.foodie.model.Review;
+import org.springframework.data.jpa.repository.JpaRepository;
+import java.util.List;
+
+public interface ReviewRepository extends JpaRepository<Review, Long> {
+    List<Review> findByRestaurantId(Long restaurantId);
 }

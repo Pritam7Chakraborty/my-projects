@@ -25,4 +25,23 @@ public class RestaurantController {
     public Restaurant createRestaurant(@RequestBody Restaurant restaurant){
         return restaurantRepository.save(restaurant);
     }
+
+    // 3. PUBLIC: Get Single Restaurant by ID
+    @GetMapping("/{id}")
+    public Restaurant getRestaurantById(@PathVariable Long id) {
+        return restaurantRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Restaurant not found with id: " + id));
+    }
+
+    // 4. OWNER/ADMIN: Toggle Restaurant Open/Closed Status
+    @PutMapping("/{id}/status")
+    public Restaurant updateRestaurantStatus(@PathVariable Long id) {
+        Restaurant restaurant = restaurantRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Restaurant not found"));
+
+        // Flip the status (True -> False, False -> True)
+        restaurant.setOpen(!restaurant.isOpen());
+
+        return restaurantRepository.save(restaurant);
+    }
 }

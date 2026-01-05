@@ -40,6 +40,9 @@ public class SecurityConfig {
                         // <i>. Auth & Debug (Public)
                         .requestMatchers("/auth/**", "/demo/debug").permitAll()
 
+                        .requestMatchers(HttpMethod.GET, "/api/restaurants/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/food/**").permitAll()
+
                         // <ii>. Restaurants (Public View, Admin Create)
                         .requestMatchers(HttpMethod.GET,"/api/restaurants").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/restaurants").hasAuthority("ROLE_ADMIN")

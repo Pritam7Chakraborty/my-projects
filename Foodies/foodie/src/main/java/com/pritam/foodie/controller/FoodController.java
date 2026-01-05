@@ -6,6 +6,7 @@ import com.pritam.foodie.repository.FoodItemRepository;
 import com.pritam.foodie.repository.RestaurantRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.http.ResponseEntity;
 
 import java.util.List;
 
@@ -37,6 +38,20 @@ public class FoodController {
     @GetMapping("/{restaurantId}")
     public List<FoodItem> getMenu(@PathVariable Long restaurantId){
         return foodItemRepository.findByRestaurantId(restaurantId);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteFoodItem(@PathVariable Long id) {
+        foodItemRepository.deleteById(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/{id}/availability")
+    public FoodItem toggleAvailability(@PathVariable Long id) {
+        FoodItem food = foodItemRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Food not found"));
+        food.setAvailable(!food.isAvailable());
+        return foodItemRepository.save(food);
     }
 
 }

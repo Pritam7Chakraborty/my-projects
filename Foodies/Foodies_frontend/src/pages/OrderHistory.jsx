@@ -3,6 +3,7 @@ import { getMyOrders } from "@/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { motion as Motion } from "framer-motion";
+import OrderTracker from "@/components/OrderTracker"; // <--- 1. Import the Tracker
 
 const OrderHistory = () => {
   const [orders, setOrders] = useState([]);
@@ -32,6 +33,8 @@ const OrderHistory = () => {
         return "bg-yellow-500 text-black";
       case "PREPARING":
         return "bg-blue-500 text-white";
+      case "OUT_FOR_DELIVERY": // Added this case for the tracker
+        return "bg-orange-500 text-white";
       case "DELIVERED":
         return "bg-green-500 text-white";
       default:
@@ -50,7 +53,7 @@ const OrderHistory = () => {
         {orders.length === 0 ? (
           <p className="text-zinc-500">You haven't ordered anything yet.</p>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-6">
             {orders.map((order, index) => (
               <Motion.div
                 key={order.id}
@@ -58,8 +61,8 @@ const OrderHistory = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
               >
-                <Card className="bg-zinc-900 border-zinc-800">
-                  <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <Card className="bg-zinc-900 border-zinc-800 overflow-hidden">
+                  <CardHeader className="flex flex-row items-center justify-between bg-zinc-800/50 pb-4">
                     <div>
                       <CardTitle className="text-lg">
                         Order #{order.id}
@@ -72,31 +75,43 @@ const OrderHistory = () => {
                       {order.status}
                     </Badge>
                   </CardHeader>
-                  <CardContent>
-                    <div className="mb-2">
-                      <p className="text-sm font-bold text-purple-400">
-                        Restaurant: {order.restaurant.title}
+
+                  <CardContent className="pt-6">
+                    <div className="mb-4">
+                      <p className="text-lg font-bold text-white flex justify-between">
+                        {order.restaurant.title}
+                        <span className="text-purple-400 text-base font-normal">
+                          ${order.totalAmount.toFixed(2)}
+                        </span>
                       </p>
                       <p className="text-xs text-zinc-500">
-                        To: {order.deliveryAddress}
+                        Delivering to: {order.deliveryAddress || order.address}
                       </p>
                     </div>
-                    <div className="space-y-1">
+
+                    {/* --- ✅ 2. INSERT TRACKER HERE --- */}
+                    <div className="mb-6 bg-zinc-950/50 p-4 rounded-lg border border-zinc-800/50">
+                      <OrderTracker status={order.status} />
+                    </div>
+                    {/* -------------------------------- */}
+
+                    <div className="space-y-2 border-t border-zinc-800 pt-4">
                       {order.items.map((item) => (
                         <div
                           key={item.id}
                           className="flex justify-between text-sm text-zinc-300"
                         >
-                          <span>
-                            {item.quantity}x {item.foodItem.title}
+                          <span className="flex items-center gap-2">
+                            <span className="bg-zinc-800 text-zinc-400 px-2 py-0.5 rounded text-xs font-bold">
+                              x{item.quantity}
+                            </span>
+                            {item.foodItem.title}
                           </span>
-                          <span>${item.foodItem.price * item.quantity}</span>
+                          <span>
+                            ${(item.foodItem.price * item.quantity).toFixed(2)}
+                          </span>
                         </div>
                       ))}
-                    </div>
-                    <div className="border-t border-zinc-800 mt-4 pt-2 flex justify-between font-bold">
-                      <span>Total</span>
-                      <span>${order.totalAmount.toFixed(2)}</span>
                     </div>
                   </CardContent>
                 </Card>

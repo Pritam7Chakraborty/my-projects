@@ -21,6 +21,8 @@ public class FoodItem {
 
     private String imageUrl;
 
+    private boolean isAvailable = true;
+
     // RELATIONSHIP: Many Foods belong to One Restaurant
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "restaurant_id",nullable = false)

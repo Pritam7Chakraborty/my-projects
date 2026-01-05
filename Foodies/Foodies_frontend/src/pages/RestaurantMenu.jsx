@@ -1,29 +1,29 @@
 import { useEffect, useState } from "react";
-import { useParams, useLocation, useNavigate } from "react-router-dom"; // Added useNavigate
-import api, { createOrder } from "@/api"; // Import createOrder
+import { useParams } from "react-router-dom";
+import api from "@/api";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Plus, Minus, ShoppingBag, MapPin } from "lucide-react"; // Added MapPin
+import { Plus, Minus, Lock } from "lucide-react";
 import { motion as Motion } from "framer-motion";
-import { Input } from "@/components/ui/input"; // Import Input for address
+import { useCart } from "@/context/CartContext";
+// 1. IMPORT THE REVIEWS COMPONENT
+import ReviewsSection from "@/components/ReviewsSection";
 
 const RestaurantMenu = () => {
   const { id } = useParams();
-  const location = useLocation();
-  const navigate = useNavigate(); // For redirecting after order
-
-  const initialName = location.state?.name || `Restaurant #${id}`;
-  const [restaurantName] = useState(initialName);
-
   const [menu, setMenu] = useState([]);
-  const [cart, setCart] = useState({});
-  const [address, setAddress] = useState(""); // State for delivery address
+  const [restaurantName, setRestaurantName] = useState("");
+  const [isOpen, setIsOpen] = useState(true);
+
+  const { addToCart, removeFromCart, cartItems } = useCart();
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await api.get(`/api/food/${id}`);
-        setMenu(response.data);
+        const response = await api.get(`/api/restaurants/${id}`);
+        setMenu(response.data.foodItems || []);
+        setRestaurantName(response.data.title || `Restaurant #${id}`);
+        setIsOpen(response.data.open);
       } catch (error) {
         console.error("Failed to load menu", error);
       }
@@ -31,172 +31,138 @@ const RestaurantMenu = () => {
     fetchData();
   }, [id]);
 
-  // Cart Logic
-  const addToCart = (foodId) => {
-    setCart((prev) => ({ ...prev, [foodId]: (prev[foodId] || 0) + 1 }));
-  };
-
-  const removeFromCart = (foodId) => {
-    setCart((prev) => {
-      const newCount = (prev[foodId] || 0) - 1;
-      if (newCount <= 0) {
-        const newCart = { ...prev };
-        delete newCart[foodId];
-        return newCart;
-      }
-      return { ...prev, [foodId]: newCount };
-    });
-  };
-
-  const handleCheckout = async () => {
-    if (!address) {
-      alert("Please enter a delivery address!");
-      return;
-    }
-
-    try {
-      const orderItems = Object.keys(cart).map((foodId) => ({
-        foodId: parseInt(foodId),
-        quantity: cart[foodId],
-      }));
-
-      const payload = {
-        restaurantId: parseInt(id),
-        items: orderItems,
-        address: address,
-      };
-
-      await createOrder(payload);
-
-      alert("Order Placed Successfully! 🍕");
-      navigate("/orders");
-    } catch (error) {
-      console.error("Checkout failed:", error);
-      alert("Failed to place order. Check console.");
-    }
+  const getQuantity = (itemId) => {
+    const item = cartItems.find((i) => i.id === itemId);
+    return item ? item.quantity : 0;
   };
 
   return (
     <div className="min-h-screen bg-zinc-950 text-white pt-24 px-4 md:px-8">
-      <div className="max-w-5xl mx-auto mb-8">
-        <h1 className="text-4xl font-bold mb-2">Menu for {restaurantName}</h1>
-        <p className="text-zinc-400">Delicious items waiting for you.</p>
+      {/* HEADER */}
+      <div className="max-w-5xl mx-auto mb-8 flex justify-between items-end">
+        <div>
+          <h1 className="text-4xl font-bold mb-2">Menu for {restaurantName}</h1>
+          <p className="text-zinc-400">Delicious items waiting for you.</p>
+        </div>
+
+        {isOpen ? (
+          <span className="px-4 py-2 bg-green-500/20 text-green-400 border border-green-500 rounded-full font-bold text-sm animate-pulse">
+            ● Open Now
+          </span>
+        ) : (
+          <span className="px-4 py-2 bg-red-500/20 text-red-400 border border-red-500 rounded-full font-bold text-sm flex items-center gap-2">
+            <Lock size={14} /> Closed
+          </span>
+        )}
       </div>
 
+      {/* MENU GRID */}
       <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
-        {/* Menu List */}
-        <div className="md:col-span-2 space-y-6">
-          {menu.map((item, index) => (
-            <Motion.div
-              key={item.id}
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: index * 0.05 }}
-            >
-              <Card className="bg-zinc-900 border-zinc-800 hover:border-zinc-700 transition-all flex flex-row overflow-hidden h-32 md:h-40">
-                <div className="w-1/3 bg-zinc-800">
-                  <img
-                    src={item.imageUrl || "https://placehold.co/200"}
-                    alt={item.title}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-                <CardContent className="w-2/3 p-4 flex flex-col justify-between">
-                  <div>
-                    <h3 className="font-bold text-lg">{item.title}</h3>
-                    <p className="text-sm text-zinc-400 line-clamp-2">
-                      {item.description}
-                    </p>
-                  </div>
-                  <div className="flex items-center justify-between mt-2">
-                    <span className="text-purple-400 font-bold">
-                      ${item.price}
-                    </span>
-                    {cart[item.id] ? (
-                      <div className="flex items-center gap-3 bg-zinc-800 rounded-full px-2 py-1">
-                        <button
-                          onClick={() => removeFromCart(item.id)}
-                          className="p-1 hover:text-red-500"
-                        >
-                          <Minus size={16} />
-                        </button>
-                        <span className="font-bold text-sm">
-                          {cart[item.id]}
-                        </span>
-                        <button
-                          onClick={() => addToCart(item.id)}
-                          className="p-1 hover:text-green-500"
-                        >
-                          <Plus size={16} />
-                        </button>
-                      </div>
-                    ) : (
-                      <Button
-                        size="sm"
-                        onClick={() => addToCart(item.id)}
-                        className="bg-white text-black hover:bg-zinc-200"
-                      >
-                        Add
-                      </Button>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            </Motion.div>
-          ))}
-        </div>
+        <div className="md:col-span-3 space-y-6">
+          {menu.map((item, index) => {
+            const quantity = getQuantity(item.id);
 
-        {/* Cart Summary (Updated with Checkout) */}
-        <div className="hidden md:block">
-          <div className="sticky top-24">
-            <Card className="bg-zinc-900 border-zinc-800">
-              <CardContent className="p-6">
-                <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
-                  <ShoppingBag className="text-purple-500" /> Your Cart
-                </h3>
-                {Object.keys(cart).length === 0 ? (
-                  <div className="text-center py-10 text-zinc-500">
-                    <p>Cart is empty.</p>
+            return (
+              <Motion.div
+                key={item.id}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: index * 0.05 }}
+              >
+                <Card
+                  className={`bg-zinc-900 border-zinc-800 transition-all flex flex-row overflow-hidden h-32 md:h-40 ${
+                    !isOpen || !item.available
+                      ? "opacity-60"
+                      : "hover:border-zinc-700"
+                  }`}
+                >
+                  <div className="w-1/3 bg-zinc-800">
+                    <img
+                      src={item.imageUrl || "https://placehold.co/200"}
+                      alt={item.title}
+                      className="w-full h-full object-cover"
+                    />
                   </div>
-                ) : (
-                  <div className="space-y-4">
-                    {Object.keys(cart).map((key) => (
-                      <div key={key} className="flex justify-between text-sm">
-                        <span>
-                          Item #{key} (x{cart[key]})
-                        </span>
-                      </div>
-                    ))}
-
-                    <div className="border-t border-zinc-800 pt-4 mt-4">
-                      <label className="text-xs text-zinc-400 mb-1 block">
-                        Delivery Address
-                      </label>
-                      <div className="flex items-center gap-2 bg-zinc-950 border border-zinc-800 rounded px-2">
-                        <MapPin size={14} className="text-zinc-500" />
-                        <input
-                          className="bg-transparent w-full text-sm py-2 focus:outline-none"
-                          placeholder="e.g. Flat 4B, Park Street"
-                          value={address}
-                          onChange={(e) => setAddress(e.target.value)}
-                        />
-                      </div>
+                  <CardContent className="w-2/3 p-4 flex flex-col justify-between">
+                    <div>
+                      <h3 className="font-bold text-lg flex items-center gap-2">
+                        {item.title}
+                        {!item.available && isOpen && (
+                          <span className="text-[10px] bg-red-500/20 text-red-500 border border-red-500/50 px-2 py-0.5 rounded">
+                            Out of Stock
+                          </span>
+                        )}
+                      </h3>
+                      <p className="text-sm text-zinc-400 line-clamp-2">
+                        {item.description}
+                      </p>
                     </div>
+                    <div className="flex items-center justify-between mt-2">
+                      <span className="text-purple-400 font-bold">
+                        ${item.price}
+                      </span>
 
-                    <Button
-                      onClick={handleCheckout}
-                      className="w-full bg-linear-to-r from-purple-600 to-pink-600 mt-4"
-                    >
-                      Place Order
-                    </Button>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
+                      {/* BUTTON LOGIC */}
+                      {!isOpen ? (
+                        <Button
+                          size="sm"
+                          disabled
+                          className="bg-zinc-800 text-zinc-500 cursor-not-allowed border border-zinc-700"
+                        >
+                          Shop Closed
+                        </Button>
+                      ) : !item.available ? (
+                        <Button
+                          size="sm"
+                          disabled
+                          className="bg-red-950/30 text-red-500 cursor-not-allowed border border-red-900/50"
+                        >
+                          Unavailable
+                        </Button>
+                      ) : quantity > 0 ? (
+                        <div className="flex items-center gap-3 bg-zinc-800 rounded-full px-2 py-1">
+                          <button
+                            onClick={() => removeFromCart(item.id)}
+                            className="p-1 hover:text-red-500"
+                          >
+                            <Minus size={16} />
+                          </button>
+                          <span className="font-bold text-sm">{quantity}</span>
+                          <button
+                            onClick={() =>
+                              addToCart({ ...item, restaurantId: parseInt(id) })
+                            }
+                            className="p-1 hover:text-green-500"
+                          >
+                            <Plus size={16} />
+                          </button>
+                        </div>
+                      ) : (
+                        <Button
+                          size="sm"
+                          onClick={() =>
+                            addToCart({ ...item, restaurantId: parseInt(id) })
+                          }
+                          className="bg-white text-black hover:bg-zinc-200"
+                        >
+                          Add
+                        </Button>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              </Motion.div>
+            );
+          })}
         </div>
+      </div>
+
+      {/* 2. ADD REVIEWS SECTION AT THE BOTTOM */}
+      <div className="max-w-5xl mx-auto border-t border-zinc-800 mt-16 pt-8 pb-20">
+        <ReviewsSection restaurantId={id} />
       </div>
     </div>
   );
 };
+
 export default RestaurantMenu;

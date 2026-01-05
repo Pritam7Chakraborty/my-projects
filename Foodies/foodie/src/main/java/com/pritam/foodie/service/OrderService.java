@@ -51,6 +51,10 @@ public class OrderService {
             FoodItem food = foodItemRepository.findById(cartItem.getFoodId())
                     .orElseThrow(()-> new RuntimeException("Food not found"));
 
+            if (!food.isAvailable()) {
+                throw new RuntimeException("Item '" + food.getTitle() + "' is currently unavailable/out of stock.");
+            }
+
             // Calculate cost for this item line
             totalAmount += (food.getPrice() * cartItem.getQuantity());
 

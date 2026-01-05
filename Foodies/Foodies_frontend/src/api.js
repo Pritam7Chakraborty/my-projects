@@ -1,11 +1,5 @@
 import axios from "axios";
 
-// AUTH: Register a new user
-export const registerUser = async (userData) => {
-  // Expects: { name, email, password, role }
-  return await api.post("/auth/register", userData);
-};
-
 const api = axios.create({
   baseURL: "http://localhost:8080",
 });
@@ -18,6 +12,16 @@ api.interceptors.request.use((config) => {
   }
   return config;
 });
+
+export const toggleRestaurantStatus = async (restaurantId) => {
+  return await api.put(`/api/restaurants/${restaurantId}/status`);
+};
+
+// AUTH: Register a new user
+export const registerUser = async (userData) => {
+  // Expects: { name, email, password, role }
+  return await api.post("/auth/register", userData);
+};
 
 export const getRestaurantMenu = async (restaurantId) => {
   return await api.get(`/api/food/${restaurantId}`);
@@ -46,13 +50,30 @@ export const addFoodItem = async (restaurantId, data) => {
 // ADMIN: Update Order Status
 export const updateOrderStatus = async (orderId, status) => {
   return await api.post(`/api/orders/${orderId}/status`, null, {
-        params: { status: status }
-    });
+    params: { status: status },
+  });
 };
 
 // ADMIN: Get All Orders (Reusing the existing one, assuming Admin sees all)
 export const getAllOrders = async () => {
-  const response = await api.get("/api/orders/admin/all"); 
+  const response = await api.get("/api/orders/admin/all");
   return response;
 };
+
+// Delete a food item
+export const deleteFoodItem = async (foodId) => {
+  return await api.delete(`/api/food/${foodId}`);
+};
+
+// Toggle food availability
+export const toggleFoodAvailability = async (foodId) => {
+  return await api.put(`/api/food/${foodId}/availability`);
+};
+
+export const getUserProfile = async () => api.get("/api/users/profile");
+export const updateUserProfile = async (data) => api.put("/api/users/profile", data);
+
+export const addReview = async (restaurantId, data) => api.post(`/api/reviews/${restaurantId}`, data);
+export const getReviews = async (restaurantId) => api.get(`/api/reviews/${restaurantId}`);
+
 export default api;
