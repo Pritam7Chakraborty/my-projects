@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import api, {
   createRestaurant,
   addFoodItem,
@@ -27,6 +28,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 
 const AdminDashboard = () => {
+  const navigate = useNavigate();
   const [restaurants, setRestaurants] = useState([]);
   const [orders, setOrders] = useState([]);
 
@@ -54,7 +56,6 @@ const AdminDashboard = () => {
 
       const orderData = await getAllOrders();
       if (orderData.data) {
-        // Sort orders: Newest first
         setOrders(
           orderData.data.sort(
             (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
@@ -66,17 +67,20 @@ const AdminDashboard = () => {
     }
   };
 
-  // --- INITIAL LOAD ---
+  // --- SECURITY CHECK ---
   useEffect(() => {
-    // THE FIX: setTimeout forces this to run AFTER the component paints.
-    // This silences the "Synchronous setState" error.
+    const userEmail = localStorage.getItem("userEmail");
+    if (!userEmail || !userEmail.includes("admin")) {
+      // Optional: alert("Access Denied");
+      navigate("/");
+      return;
+    }
     setTimeout(() => {
       refreshData();
     }, 0);
-  }, []);
+  }, [navigate]);
 
   // --- HANDLERS ---
-
   const handleCreateRestaurant = async () => {
     try {
       await createRestaurant(newRestaurant);
@@ -158,8 +162,6 @@ const AdminDashboard = () => {
                     >
                       {order.status}
                     </Badge>
-
-                    {/* Status Changer */}
                     <Select
                       onValueChange={(val) => handleStatusUpdate(order.id, val)}
                     >
@@ -201,7 +203,8 @@ const AdminDashboard = () => {
                 <CardTitle>Create New Restaurant</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div>
+                {/* ADDED 'space-y-2' TO EACH DIV BELOW */}
+                <div className="space-y-2">
                   <Label>Restaurant Name</Label>
                   <Input
                     className="bg-zinc-800 border-zinc-700"
@@ -214,7 +217,7 @@ const AdminDashboard = () => {
                     }
                   />
                 </div>
-                <div>
+                <div className="space-y-2">
                   <Label>Address</Label>
                   <Input
                     className="bg-zinc-800 border-zinc-700"
@@ -227,7 +230,7 @@ const AdminDashboard = () => {
                     }
                   />
                 </div>
-                <div>
+                <div className="space-y-2">
                   <Label>Image URL</Label>
                   <Input
                     className="bg-zinc-800 border-zinc-700"
@@ -241,7 +244,7 @@ const AdminDashboard = () => {
                     }
                   />
                 </div>
-                <div>
+                <div className="space-y-2">
                   <Label>Description</Label>
                   <Textarea
                     className="bg-zinc-800 border-zinc-700"
@@ -271,8 +274,8 @@ const AdminDashboard = () => {
                 <CardTitle>Add Food Item</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                {/* Select Restaurant */}
-                <div>
+                {/* ADDED 'space-y-2' TO EACH DIV BELOW */}
+                <div className="space-y-2">
                   <Label>Select Restaurant</Label>
                   <Select
                     onValueChange={(val) =>
@@ -292,7 +295,7 @@ const AdminDashboard = () => {
                   </Select>
                 </div>
 
-                <div>
+                <div className="space-y-2">
                   <Label>Food Name</Label>
                   <Input
                     className="bg-zinc-800 border-zinc-700"
@@ -302,7 +305,7 @@ const AdminDashboard = () => {
                     }
                   />
                 </div>
-                <div>
+                <div className="space-y-2">
                   <Label>Price ($)</Label>
                   <Input
                     type="number"
@@ -313,7 +316,7 @@ const AdminDashboard = () => {
                     }
                   />
                 </div>
-                <div>
+                <div className="space-y-2">
                   <Label>Image URL</Label>
                   <Input
                     className="bg-zinc-800 border-zinc-700"
@@ -324,7 +327,7 @@ const AdminDashboard = () => {
                     }
                   />
                 </div>
-                <div>
+                <div className="space-y-2">
                   <Label>Description</Label>
                   <Textarea
                     className="bg-zinc-800 border-zinc-700"

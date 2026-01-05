@@ -9,14 +9,16 @@ import {
   CardFooter,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { MapPin, ArrowRight } from "lucide-react";
+import { MapPin, ArrowRight, Search } from "lucide-react";
 import { motion as Motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import Hero3D from "@/components/Hero3D"; // <--- IMPORT THE NEW 3D COMPONENT
+import Hero3D from "@/components/Hero3D";
+import { Input } from "@/components/ui/input";
 
 const Home = () => {
   const [restaurants, setRestaurants] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     const fetchRestaurants = async () => {
@@ -41,11 +43,16 @@ const Home = () => {
     );
   }
 
+  const filteredRestaurants = restaurants.filter(
+    (restaurant) =>
+      restaurant.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      restaurant.description.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   return (
     <div className="min-h-screen bg-zinc-950 text-white">
-      {/* --- NEW HERO SECTION START --- */}
+      {/* --- HERO SECTION --- */}
       <div className="pt-28 pb-12 px-8 max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-8">
-        {/* Left Side: Text */}
         <div className="md:w-1/2 text-center md:text-left z-10">
           <h1 className="text-5xl md:text-7xl font-extrabold bg-clip-text text-transparent bg-linear-to-r from-purple-400 to-pink-600 mb-6 leading-tight">
             Cravings, <br /> Solved.
@@ -59,21 +66,36 @@ const Home = () => {
           </Button>
         </div>
 
-        {/* Right Side: 3D Donut */}
         <div className="md:w-1/2 w-full h-100">
           <Hero3D />
         </div>
       </div>
-      {/* --- NEW HERO SECTION END --- */}
 
-      {/* Restaurant Grid */}
+      {/* --- SEARCH BAR --- */}
+      <div className="px-8 max-w-2xl mx-auto -mt-8 mb-12 relative z-20">
+        <div className="relative group">
+          <Search
+            className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-purple-500 transition-colors"
+            size={20}
+          />
+          <Input
+            className="bg-zinc-900/90 backdrop-blur-md border-zinc-700 pl-12 h-14 rounded-full text-lg shadow-xl focus:ring-2 focus:ring-purple-500 transition-all"
+            placeholder="Search for burgers, pizza, or sushi..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+      </div>
+
+      {/* --- RESTAURANT GRID --- */}
       <div className="px-8 pb-20 max-w-7xl mx-auto">
         <h2 className="text-2xl font-bold mb-6 text-zinc-200 border-b border-zinc-800 pb-2">
           Top Restaurants
         </h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {restaurants.map((restaurant, index) => (
+          {/* 1. Map through items */}
+          {filteredRestaurants.map((restaurant, index) => (
             <Motion.div
               key={restaurant.id}
               initial={{ opacity: 0, y: 20 }}
@@ -131,6 +153,13 @@ const Home = () => {
               </Card>
             </Motion.div>
           ))}
+
+          {/* 2. Check for empty results OUTSIDE the map */}
+          {filteredRestaurants.length === 0 && (
+            <div className="col-span-full text-center text-zinc-500 py-12">
+              <p>No restaurants found matching "{searchTerm}"</p>
+            </div>
+          )}
         </div>
       </div>
     </div>

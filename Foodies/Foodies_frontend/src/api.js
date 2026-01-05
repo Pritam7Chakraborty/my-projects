@@ -1,5 +1,11 @@
 import axios from "axios";
 
+// AUTH: Register a new user
+export const registerUser = async (userData) => {
+  // Expects: { name, email, password, role }
+  return await api.post("/auth/register", userData);
+};
+
 const api = axios.create({
   baseURL: "http://localhost:8080",
 });
@@ -46,7 +52,7 @@ export const updateOrderStatus = async (orderId, status) => {
 
 // ADMIN: Get All Orders (Reusing the existing one, assuming Admin sees all)
 export const getAllOrders = async () => {
-  return await api.get("/api/orders");
+  const response = await api.get("/api/orders/admin/all"); 
+  return response;
 };
-
 export default api;

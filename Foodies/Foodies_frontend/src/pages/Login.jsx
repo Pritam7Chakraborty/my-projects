@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom"; 
 import api from "@/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,7 +10,9 @@ import {
   CardHeader,
   CardTitle,
   CardDescription,
-} from "@/components/ui/card";
+  CardFooter,
+} from "@/components/ui/card"; 
+
 const Login = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
@@ -25,30 +27,32 @@ const Login = () => {
 
   const handleLogin = async () => {
     try {
-      setError(""); 
-      console.log("Attempting login with:", formData); // Debug log
-      
+      setError("");
+      console.log("Attempting login with:", formData);
+
       const response = await api.post("/auth/login", formData);
-      console.log("Login Success:", response.data); // Debug log
-      
+      console.log("Login Success:", response.data);
+
       const token = response.data.token;
       localStorage.setItem("token", token);
-      localStorage.setItem("userEmail", formData.email);
-      alert("Login Successful!");
-      navigate("/"); 
       
+      // Save email for Navbar logic
+      localStorage.setItem("userEmail", formData.email);
+      
+      alert("Login Successful!");
+      navigate("/");
     } catch (err) {
       console.error("Login Error Details:", err);
-      
-      // LOGIC TO SHOW THE REAL ERROR
+
       if (err.response) {
-        // The server responded (e.g., 401 Unauthorized)
-        setError(`Server Error: ${err.response.status} - ${JSON.stringify(err.response.data)}`);
+        setError(
+          `Server Error: ${err.response.status} - ${JSON.stringify(
+            err.response.data
+          )}`
+        );
       } else if (err.request) {
-        // The request was sent but no response (Network/CORS issue)
         setError("Network Error: No response from server. Check CORS/Ports.");
       } else {
-        // Something else happened
         setError(`Error: ${err.message}`);
       }
     }
@@ -66,9 +70,11 @@ const Login = () => {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          {/*Email Input*/}
+          
+          {/* Email Input */}
           <div className="space-y-2">
-            <label htmlFor="email">Email</label>
+            {/* Fixed: Used ShadCN Label instead of html label */}
+            <Label htmlFor="email">Email</Label>
             <Input
               id="email"
               name="email"
@@ -77,6 +83,7 @@ const Login = () => {
               onChange={handleChange}
             />
           </div>
+
           {/* Password Input */}
           <div className="space-y-2">
             <Label htmlFor="password">Password</Label>
@@ -89,7 +96,8 @@ const Login = () => {
               onChange={handleChange}
             />
           </div>
-          {/*Error Message*/}
+
+          {/* Error Message */}
           {error && <p className="text-red-500 text-sm text-center">{error}</p>}
 
           {/* Login Button */}
@@ -100,8 +108,19 @@ const Login = () => {
             Sign In
           </Button>
         </CardContent>
+        
+        {/* Footer Link to Register */}
+        <CardFooter className="justify-center">
+          <p className="text-sm text-zinc-400">
+            Don't have an account?{" "}
+            <Link to="/register" className="text-purple-400 hover:underline">
+              Sign up
+            </Link>
+          </p>
+        </CardFooter>
       </Card>
     </div>
   );
 };
+
 export default Login;

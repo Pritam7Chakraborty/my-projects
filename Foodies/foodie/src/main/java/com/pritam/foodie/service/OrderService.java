@@ -86,4 +86,8 @@ public class OrderService {
         order.setStatus(newStatus.toUpperCase());
         return orderRepository.save(order);
     }
+
+    public List<Order> getAllOrders() {
+        return orderRepository.findAll(); // This fetches every row in the table
+    }
 }

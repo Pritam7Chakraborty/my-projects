@@ -1,8 +1,24 @@
-import { useMemo } from "react";
 import { Canvas } from "@react-three/fiber";
 import { OrbitControls, Float } from "@react-three/drei";
 
-// A single Sprinkle component
+// --- 1. GENERATE DATA OUTSIDE THE COMPONENT ---
+// This runs only once when the app starts, so it's "Pure" and safe.
+const colors = ["#ffffff", "#ffff00", "#00ffff", "#ff0000"]; // White, Yellow, Cyan, Red
+const sprinkleData = Array.from({ length: 40 }).map((_, i) => {
+  const angle = (Math.PI * 2 * i) / 40; 
+  const x = Math.cos(angle) * 1.8;
+  const y = Math.sin(angle) * 1.8;
+  const offsetX = (Math.random() - 0.5) * 0.5;
+  const offsetY = (Math.random() - 0.5) * 0.5;
+
+  return {
+    position: [x + offsetX, y + offsetY, 0.6], 
+    rotation: [Math.random() * Math.PI, Math.random() * Math.PI, 0],
+    color: colors[Math.floor(Math.random() * colors.length)],
+  };
+});
+
+// --- 2. SPRINKLE COMPONENT ---
 const Sprinkle = ({ position, rotation, color }) => {
   return (
     <mesh position={position} rotation={rotation}>
@@ -12,50 +28,26 @@ const Sprinkle = ({ position, rotation, color }) => {
   );
 };
 
+// --- 3. DONUT COMPONENT ---
 const DeluxeDonut = () => {
-  // Generate random sprinkles positions only ONCE
-  const sprinkles = useMemo(() => {
-    const items = [];
-    const colors = ["#ffffff", "#ffff00", "#00ffff", "#ff0000"]; // White, Yellow, Cyan, Red
-    
-    for (let i = 0; i < 40; i++) {
-      // Math to scatter them on the top surface of the torus
-      const angle = (Math.PI * 2 * i) / 40; // Spread around the ring
-      const x = Math.cos(angle) * 1.8; // 1.8 is the donut radius
-      const y = Math.sin(angle) * 1.8;
-      
-      // Random offsets to make it look natural
-      const offsetX = (Math.random() - 0.5) * 0.5;
-      const offsetY = (Math.random() - 0.5) * 0.5;
-
-      items.push({
-        position: [x + offsetX, y + offsetY, 0.6], // z=0.6 puts it on top of the icing
-        rotation: [Math.random() * Math.PI, Math.random() * Math.PI, 0],
-        color: colors[Math.floor(Math.random() * colors.length)],
-      });
-    }
-    return items;
-  }, []);
-
   return (
     <Float speed={2} rotationIntensity={1} floatIntensity={1}>
       <group rotation={[0.5, 0.5, 0]}>
         
-        {/* 1. THE DOUGH (Golden Brown Base) */}
+        {/* Dough Base */}
         <mesh position={[0, 0, -0.05]}>
           <torusGeometry args={[1.8, 0.6, 16, 100]} />
           <meshStandardMaterial color="#C19A6B" roughness={0.4} />
         </mesh>
 
-        {/* 2. THE ICING (Glossy Pink Top) */}
+        {/* Pink Icing */}
         <mesh position={[0, 0, 0.05]}> 
-          {/* Slightly thinner tube so dough shows on bottom */}
           <torusGeometry args={[1.8, 0.55, 16, 100]} />
           <meshStandardMaterial color="#FF69B4" roughness={0.2} metalness={0.1} />
         </mesh>
 
-        {/* 3. THE SPRINKLES */}
-        {sprinkles.map((s, index) => (
+        {/* Sprinkles (Using the static data) */}
+        {sprinkleData.map((s, index) => (
           <Sprinkle key={index} {...s} />
         ))}
 
@@ -64,6 +56,7 @@ const DeluxeDonut = () => {
   );
 };
 
+// --- 4. MAIN SCENE ---
 const Hero3D = () => {
   return (
     <div className="h-100 w-full cursor-grab active:cursor-grabbing">

@@ -50,4 +50,12 @@ public class OrderController {
         Order updateOrder = orderService.updateOrderStatus(orderId,status);
         return ResponseEntity.ok(updateOrder);
     }
+
+    // URL: GET /api/orders/admin/all
+    @GetMapping("/admin/all")
+    public ResponseEntity<List<Order>> getAllOrdersForAdmin() {
+        // You might need to add this method to your Service first if it doesn't exist
+        List<Order> allOrders = orderService.getAllOrders();
+        return ResponseEntity.ok(allOrders);
+    }
 }
