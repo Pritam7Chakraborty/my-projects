@@ -10,16 +10,18 @@ const ReviewsSection = ({ restaurantId }) => {
   const [newReview, setNewReview] = useState({ message: "", rating: 5 });
   const [loading, setLoading] = useState(false);
 
-  // 1. Wrap fetchReviews in useCallback to fix lint warning
+  // ✅ FIX 1: Wrap in useCallback so it's stable
   const fetchReviews = useCallback(async () => {
     try {
       const res = await getReviews(restaurantId);
       setReviews(res.data);
     } catch (error) {
-      console.error("Failed to load reviews", error);
+      // ✅ FIX 2: Use the error variable
+      console.error("Failed to fetch reviews:", error);
     }
   }, [restaurantId]);
 
+  // ✅ FIX 3: Add dependency
   useEffect(() => {
     fetchReviews();
   }, [fetchReviews]);
@@ -32,7 +34,8 @@ const ReviewsSection = ({ restaurantId }) => {
       setNewReview({ message: "", rating: 5 });
       fetchReviews();
     } catch (error) {
-      console.error("Submit error:", error); // 2. Log error to use the variable
+      // ✅ FIX 4: Use the error variable
+      console.error("Submit failed:", error);
       alert("Failed to submit review. Are you logged in?");
     } finally {
       setLoading(false);

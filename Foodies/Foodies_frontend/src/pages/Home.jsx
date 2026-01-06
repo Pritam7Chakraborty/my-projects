@@ -17,7 +17,8 @@ import {
   Filter,
   ChevronLeft,
   ChevronRight,
-} from "lucide-react";
+  X,
+} from "lucide-react"; // Added X icon
 import { motion as Motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import Hero3D from "@/components/Hero3D";
@@ -31,9 +32,25 @@ const Home = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [activeFilter, setActiveFilter] = useState("All");
 
-  // --- 1. PAGINATION STATE ---
+  // 🏙️ NEW: City Filter State
+  const [selectedCity, setSelectedCity] = useState(null);
+
+  // Pagination State
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 9;
+
+  // Hardcoded Popular Cities List
+  const popularCities = [
+    "Bangalore",
+    "Pune",
+    "Mumbai",
+    "Delhi",
+    "Kolkata",
+    "Hyderabad",
+    "Chennai",
+    "Ahmedabad",
+    "Jaipur",
+  ];
 
   useEffect(() => {
     const fetchRestaurants = async () => {
@@ -49,17 +66,19 @@ const Home = () => {
     fetchRestaurants();
   }, []);
 
-  // Reset page to 1 whenever search/filter changes
+  // Reset page whenever filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm, activeFilter]);
+  }, [searchTerm, activeFilter, selectedCity]);
 
   // --- FILTER LOGIC ---
   const filteredRestaurants = restaurants.filter((restaurant) => {
+    // 1. Text Search
     const matchesSearch =
       restaurant.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       restaurant.description.toLowerCase().includes(searchTerm.toLowerCase());
 
+    // 2. Chip Filter (Pizza, Burger, etc.)
     let matchesFilter = true;
     if (activeFilter === "Open Now") matchesFilter = restaurant.open === true;
     else if (activeFilter !== "All") {
@@ -69,10 +88,18 @@ const Home = () => {
         restaurant.description.toLowerCase().includes(type);
     }
 
-    return matchesSearch && matchesFilter;
+    // 3. 🏙️ City Filter Logic (Checks if address contains the city name)
+    let matchesCity = true;
+    if (selectedCity) {
+      matchesCity = restaurant.address
+        .toLowerCase()
+        .includes(selectedCity.toLowerCase());
+    }
+
+    return matchesSearch && matchesFilter && matchesCity;
   });
 
-  // --- 2. PAGINATION LOGIC ---
+  // Pagination Logic
   const totalPages = Math.ceil(filteredRestaurants.length / itemsPerPage);
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
@@ -113,7 +140,7 @@ const Home = () => {
       </div>
 
       {/* SEARCH BAR */}
-      <div className="px-8 max-w-2xl mx-auto -mt-8 mb-12 relative z-20">
+      <div className="px-8 max-w-2xl mx-auto -mt-8 mb-16 relative z-20">
         <div className="relative group mb-4">
           <Search
             className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-purple-500 transition-colors"
@@ -143,23 +170,56 @@ const Home = () => {
         </div>
       </div>
 
+      {/* 🏙️ CITY SELECTION GRID (SWIGGY STYLE) */}
+      <div className="px-8 pb-12 max-w-7xl mx-auto border-b border-zinc-800 mb-12">
+        <h3 className="text-xl font-bold mb-6 text-zinc-300">
+          Cities with food delivery
+        </h3>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          {popularCities.map((city) => (
+            <button
+              key={city}
+              onClick={() =>
+                setSelectedCity(selectedCity === city ? null : city)
+              }
+              className={`p-4 rounded-xl border font-bold transition-all text-sm md:text-base truncate ${
+                selectedCity === city
+                  ? "bg-white text-black border-white shadow-[0_0_15px_rgba(255,255,255,0.3)]"
+                  : "bg-zinc-900 border-zinc-800 text-zinc-400 hover:border-zinc-600 hover:text-white hover:shadow-lg"
+              }`}
+            >
+              Order food in {city}
+            </button>
+          ))}
+        </div>
+      </div>
+
       {/* RESTAURANT GRID */}
       <div className="px-8 pb-20 max-w-7xl mx-auto">
         <div className="flex items-center justify-between mb-6 border-b border-zinc-800 pb-2">
-          <h2 className="text-2xl font-bold text-zinc-200">
-            {activeFilter === "All"
-              ? "Top Restaurants"
-              : `${activeFilter} Places`}
-          </h2>
+          <div className="flex items-center gap-3">
+            <h2 className="text-2xl font-bold text-zinc-200">
+              {selectedCity
+                ? `Best Food in ${selectedCity}`
+                : "Top Restaurants"}
+            </h2>
+            {/* Clear City Button if active */}
+            {selectedCity && (
+              <button
+                onClick={() => setSelectedCity(null)}
+                className="text-xs flex items-center gap-1 text-red-400 hover:text-red-300 border border-red-500/30 px-2 py-1 rounded-full"
+              >
+                <X size={12} /> Clear City
+              </button>
+            )}
+          </div>
+
           <span className="text-zinc-500 text-sm">
-            Showing {indexOfFirstItem + 1}-
-            {Math.min(indexOfLastItem, filteredRestaurants.length)} of{" "}
-            {filteredRestaurants.length} results
+            Showing {filteredRestaurants.length} results
           </span>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
-          {/* ✅ MAP CURRENT PAGE ITEMS ONLY */}
           {currentRestaurants.map((restaurant, index) => (
             <Motion.div
               key={restaurant.id}
@@ -223,23 +283,24 @@ const Home = () => {
             <div className="col-span-full text-center text-zinc-500 py-12 flex flex-col items-center">
               <Filter size={48} className="mb-4 opacity-50" />
               <p className="text-lg">
-                No restaurants found matching "{searchTerm}"
+                No restaurants found in {selectedCity || "your search area"} 😔
               </p>
               <Button
                 variant="link"
                 onClick={() => {
                   setActiveFilter("All");
                   setSearchTerm("");
+                  setSelectedCity(null);
                 }}
                 className="text-purple-400"
               >
-                Clear Search
+                Clear All Filters
               </Button>
             </div>
           )}
         </div>
 
-        {/* --- 3. PAGINATION CONTROLS --- */}
+        {/* PAGINATION CONTROLS */}
         {filteredRestaurants.length > itemsPerPage && (
           <div className="flex justify-center items-center gap-4">
             <Button

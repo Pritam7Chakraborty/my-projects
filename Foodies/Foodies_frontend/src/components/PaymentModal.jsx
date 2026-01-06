@@ -1,30 +1,34 @@
-import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { useState } from "react";
+import { CreditCard, Loader2, CheckCircle } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Loader2, CheckCircle, CreditCard } from "lucide-react";
-import { motion as Motion } from "framer-motion";
 
 const PaymentModal = ({ isOpen, onClose, totalAmount, onPaymentSuccess }) => {
-  const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState(false);
+  // ✅ FIX: Removed unused 'loading' state. We use 'step' instead.
+  const [step, setStep] = useState("input"); // 'input' | 'processing' | 'success'
 
-  const handlePay = async (e) => {
-    e.preventDefault();
-    setLoading(true);
+  const handleFakePayment = async () => {
+    setStep("processing");
 
-    // Simulate API delay (2 seconds)
+    // 1. Simulate Network Delay (2 seconds)
     setTimeout(() => {
-      setLoading(false);
-      setSuccess(true);
-      
-      // Close modal after showing success animation
+      setStep("success");
+
+      // 2. Generate Fake Transaction ID
+      const fakeTxnId = "pay_fake_" + Math.random().toString(36).substr(2, 9);
+
+      // 3. Complete the Order after showing success briefly
       setTimeout(() => {
-        onPaymentSuccess(); // Clear cart and redirect
-        setSuccess(false); 
+        onPaymentSuccess(fakeTxnId);
         onClose();
-      }, 2000);
+        setStep("input"); // Reset for next time
+      }, 1500);
     }, 2000);
   };
 
@@ -32,63 +36,66 @@ const PaymentModal = ({ isOpen, onClose, totalAmount, onPaymentSuccess }) => {
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="bg-zinc-900 border-zinc-800 text-white sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="text-xl font-bold flex items-center gap-2">
-            <CreditCard className="text-purple-500" /> Secure Payment
-          </DialogTitle>
+          <DialogTitle>Secure Payment</DialogTitle>
         </DialogHeader>
 
-        {success ? (
-          <Motion.div 
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            className="flex flex-col items-center justify-center py-10 space-y-4"
-          >
-            <CheckCircle className="w-20 h-20 text-green-500" />
-            <h2 className="text-2xl font-bold text-green-400">Payment Successful!</h2>
-            <p className="text-zinc-400">Your order has been placed.</p>
-          </Motion.div>
-        ) : (
-          <form onSubmit={handlePay} className="space-y-4 mt-4">
-            <div className="bg-zinc-800 p-4 rounded-lg mb-4 text-center">
-              <p className="text-zinc-400 text-sm">Total Amount to Pay</p>
-              <h1 className="text-3xl font-bold text-white">${totalAmount}</h1>
+        {step === "input" && (
+          <div className="space-y-4 py-4">
+            <div className="bg-zinc-950 p-4 rounded-lg border border-zinc-800 flex justify-between items-center">
+              <div>
+                <p className="text-xs text-zinc-400">Total Amount</p>
+                <h2 className="text-2xl font-bold">₹{totalAmount}</h2>
+              </div>
+              <CreditCard className="text-purple-500" size={32} />
             </div>
 
             <div className="space-y-2">
-              <Label>Card Number</Label>
-              <Input 
-                placeholder="4242 4242 4242 4242" 
-                className="bg-zinc-950 border-zinc-700 font-mono"
-                required
-                maxLength={19}
+              <label className="text-xs text-zinc-400">
+                Card Number (Test)
+              </label>
+              <Input
+                placeholder="4111 1111 1111 1111"
+                className="bg-zinc-800 border-zinc-700"
               />
+              <div className="grid grid-cols-2 gap-4">
+                <Input
+                  placeholder="MM/YY"
+                  className="bg-zinc-800 border-zinc-700"
+                />
+                <Input
+                  placeholder="CVV"
+                  className="bg-zinc-800 border-zinc-700"
+                />
+              </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Expiry Date</Label>
-                <Input placeholder="MM/YY" className="bg-zinc-950 border-zinc-700" required maxLength={5} />
-              </div>
-              <div className="space-y-2">
-                <Label>CVV</Label>
-                <Input placeholder="123" type="password" className="bg-zinc-950 border-zinc-700" required maxLength={3} />
-              </div>
-            </div>
-
-            <Button 
-              type="submit" 
-              className="w-full bg-green-600 hover:bg-green-700 h-12 text-lg font-semibold mt-4"
-              disabled={loading}
+            <Button
+              onClick={handleFakePayment}
+              className="w-full bg-green-600 hover:bg-green-700 h-12 font-bold mt-2"
             >
-              {loading ? (
-                <>
-                  <Loader2 className="mr-2 h-5 w-5 animate-spin" /> Processing...
-                </>
-              ) : (
-                "Pay Now"
-              )}
+              Pay Now
             </Button>
-          </form>
+          </div>
+        )}
+
+        {step === "processing" && (
+          <div className="py-12 flex flex-col items-center justify-center space-y-4 text-center">
+            <Loader2 size={48} className="animate-spin text-purple-500" />
+            <p className="text-lg font-medium">Processing Payment...</p>
+            <p className="text-sm text-zinc-500">
+              Please do not close this window.
+            </p>
+          </div>
+        )}
+
+        {step === "success" && (
+          <div className="py-12 flex flex-col items-center justify-center space-y-4 text-center">
+            <CheckCircle size={48} className="text-green-500" />
+            <h3 className="text-xl font-bold text-green-500">
+              Payment Successful!
+            </h3>
+            <p className="text-zinc-400">Redirecting to orders...</p>
+          </div>
         )}
       </DialogContent>
     </Dialog>
