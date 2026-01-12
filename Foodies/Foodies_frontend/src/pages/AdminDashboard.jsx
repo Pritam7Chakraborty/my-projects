@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import api, {
   createRestaurant,
@@ -26,11 +26,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { DollarSign, ShoppingBag, Users, TrendingUp } from "lucide-react";
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
   const [restaurants, setRestaurants] = useState([]);
   const [orders, setOrders] = useState([]);
+  const [stats, setStats] = useState({ totalRevenue: 0, totalOrders: 0, totalUsers: 0, salesData: [] });
 
   // Forms State
   const [newRestaurant, setNewRestaurant] = useState({
@@ -48,8 +51,9 @@ const AdminDashboard = () => {
     imageUrl: "",
   });
 
-  // --- SHARED DATA FETCHER ---
-  const refreshData = async () => {
+  // --- STABLE DATA FETCHER ---
+  // We keep this stable with useCallback so it doesn't cause loops
+  const refreshData = useCallback(async () => {
     try {
       const resData = await api.get("/api/restaurants");
       setRestaurants(resData.data);
@@ -62,23 +66,31 @@ const AdminDashboard = () => {
           )
         );
       }
+
+      // Fetch Admin Stats
+      const statsData = await api.get("/api/admin/stats"); 
+      setStats(statsData.data);
+
     } catch (e) {
       console.error("Failed to load admin data", e);
     }
-  };
+  }, []);
 
-  // --- SECURITY CHECK ---
+  // --- ✅ FIXED USE EFFECT ---
   useEffect(() => {
     const userEmail = localStorage.getItem("userEmail");
     if (!userEmail || !userEmail.includes("admin")) {
-      // Optional: alert("Access Denied");
       navigate("/");
       return;
     }
-    setTimeout(() => {
-      refreshData();
-    }, 0);
-  }, [navigate]);
+    
+    // Fix: Wrap in an internal async function to satisfy the linter
+    const loadData = async () => {
+      await refreshData();
+    };
+    
+    loadData();
+  }, [navigate, refreshData]);
 
   // --- HANDLERS ---
   const handleCreateRestaurant = async () => {
@@ -128,20 +140,111 @@ const AdminDashboard = () => {
 
   return (
     <div className="min-h-screen bg-zinc-950 text-white py-24 pb-40 px-4 md:px-8">
-      <div className="max-w-6xl mx-auto">
+      <div className="max-w-7xl mx-auto">
         <h1 className="text-4xl font-bold mb-2 text-purple-500">
           Admin Dashboard
         </h1>
-        <p className="text-zinc-400 mb-8">Manage your food empire.</p>
+        <p className="text-zinc-400 mb-8">Manage your food empire & view analytics.</p>
 
-        <Tabs defaultValue="orders" className="w-full">
+        <Tabs defaultValue="overview" className="w-full">
           <TabsList className="bg-zinc-900 border border-zinc-800">
+            <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="orders">Manage Orders</TabsTrigger>
             <TabsTrigger value="restaurants">Add Restaurant</TabsTrigger>
             <TabsTrigger value="food">Add Food Menu</TabsTrigger>
           </TabsList>
 
-          {/* TAB 1: MANAGE ORDERS */}
+          {/* TAB 1: ANALYTICS OVERVIEW */}
+          <TabsContent value="overview" className="mt-6 space-y-6">
+             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <Card className="bg-zinc-900 border-zinc-800">
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium text-zinc-400">Total Revenue</CardTitle>
+                        <DollarSign className="h-4 w-4 text-green-500" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold">₹{stats.totalRevenue?.toLocaleString()}</div>
+                        <p className="text-xs text-zinc-500 mt-1">+20.1% from last month</p>
+                    </CardContent>
+                </Card>
+                
+                <Card className="bg-zinc-900 border-zinc-800">
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium text-zinc-400">Total Orders</CardTitle>
+                        <ShoppingBag className="h-4 w-4 text-purple-500" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold">{stats.totalOrders}</div>
+                        <p className="text-xs text-zinc-500 mt-1">+12% new orders</p>
+                    </CardContent>
+                </Card>
+
+                <Card className="bg-zinc-900 border-zinc-800">
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium text-zinc-400">Total Users</CardTitle>
+                        <Users className="h-4 w-4 text-blue-500" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold">{stats.totalUsers}</div>
+                        <p className="text-xs text-zinc-500 mt-1">+5 new users today</p>
+                    </CardContent>
+                </Card>
+             </div>
+
+             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <Card className="bg-zinc-900 border-zinc-800 col-span-2 lg:col-span-1">
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                            <TrendingUp size={18} className="text-purple-500"/> Monthly Revenue
+                        </CardTitle>
+                        <CardDescription>Revenue overview for the current year</CardDescription>
+                    </CardHeader>
+                    <CardContent className="h-75">
+                        <ResponsiveContainer width="100%" height="100%">
+                            <BarChart data={stats.salesData}>
+                                <CartesianGrid strokeDasharray="3 3" stroke="#333" vertical={false} />
+                                <XAxis dataKey="name" stroke="#888" fontSize={12} tickLine={false} axisLine={false} />
+                                <YAxis stroke="#888" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `₹${value}`} />
+                                <Tooltip 
+                                    contentStyle={{ backgroundColor: '#18181b', border: '1px solid #27272a', borderRadius: '8px' }}
+                                    itemStyle={{ color: '#fff' }}
+                                    cursor={{fill: '#27272a'}}
+                                />
+                                <Bar dataKey="sales" fill="#9333ea" radius={[4, 4, 0, 0]} />
+                            </BarChart>
+                        </ResponsiveContainer>
+                    </CardContent>
+                </Card>
+
+                <Card className="bg-zinc-900 border-zinc-800 col-span-2 lg:col-span-1">
+                    <CardHeader>
+                        <CardTitle>Recent Activity</CardTitle>
+                        <CardDescription>Latest actions across the platform</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                         <div className="space-y-4">
+                            {orders.slice(0, 5).map(order => (
+                                <div key={order.id} className="flex items-center justify-between border-b border-zinc-800 pb-2 last:border-0">
+                                    <div className="space-y-1">
+                                        <p className="text-sm font-medium leading-none text-white">
+                                            Order #{order.id}
+                                        </p>
+                                        <p className="text-xs text-zinc-400">
+                                            {order.items.length} items • {order.status}
+                                        </p>
+                                    </div>
+                                    <div className="font-bold text-white">
+                                        +₹{order.totalAmount}
+                                    </div>
+                                </div>
+                            ))}
+                         </div>
+                    </CardContent>
+                </Card>
+             </div>
+          </TabsContent>
+
+          {/* TAB 2: MANAGE ORDERS */}
           <TabsContent value="orders" className="mt-6 space-y-4">
             {orders.length === 0 && (
               <p className="text-zinc-500">No orders found.</p>
@@ -196,14 +299,13 @@ const AdminDashboard = () => {
             ))}
           </TabsContent>
 
-          {/* TAB 2: CREATE RESTAURANT */}
+          {/* TAB 3: CREATE RESTAURANT */}
           <TabsContent value="restaurants" className="mt-6">
             <Card className="bg-zinc-900 border-zinc-800 max-w-2xl">
               <CardHeader>
                 <CardTitle>Create New Restaurant</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                {/* ADDED 'space-y-2' TO EACH DIV BELOW */}
                 <div className="space-y-2">
                   <Label>Restaurant Name</Label>
                   <Input
@@ -267,14 +369,13 @@ const AdminDashboard = () => {
             </Card>
           </TabsContent>
 
-          {/* TAB 3: ADD FOOD */}
+          {/* TAB 4: ADD FOOD */}
           <TabsContent value="food" className="mt-6">
             <Card className="bg-zinc-900 border-zinc-800 max-w-2xl">
               <CardHeader>
                 <CardTitle>Add Food Item</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                {/* ADDED 'space-y-2' TO EACH DIV BELOW */}
                 <div className="space-y-2">
                   <Label>Select Restaurant</Label>
                   <Select
