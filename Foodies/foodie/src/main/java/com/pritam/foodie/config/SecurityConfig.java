@@ -34,20 +34,19 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf.disable())
-                // NEW: Connects the CORS rules defined below
+                // Connects the CORS rules defined below
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> auth
-                        // <i>. Auth & Debug (Public)
+                        // Public Endpoints
                         .requestMatchers("/auth/**", "/demo/debug").permitAll()
-
                         .requestMatchers(HttpMethod.GET, "/api/restaurants/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/food/**").permitAll()
 
-                        // <ii>. Restaurants (Public View, Admin Create)
+                        // Restaurants (Public View, Admin Create)
                         .requestMatchers(HttpMethod.GET,"/api/restaurants").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/restaurants").hasAuthority("ROLE_ADMIN")
 
-                        // <iii>. Food Menu (Public View, Admin Add)
+                        // Food Menu (Public View, Admin Add)
                         .requestMatchers(HttpMethod.GET,"/api/food/**").permitAll()
                         .requestMatchers(HttpMethod.POST,"/api/food/**").hasAuthority("ROLE_ADMIN")
 
@@ -67,12 +66,19 @@ public class SecurityConfig {
         return http.build();
     }
 
-    //The specific rules for React
+    // 🟢 THIS IS THE FIXED PART
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        // Allow both standard Vite ports just in case
-        configuration.setAllowedOrigins(List.of("http://localhost:5173", "http://localhost:5174"));
+
+        // 1. Allow Localhost (for when you code on laptop)
+        // 2. Allow Render Frontend (for the live site)
+        configuration.setAllowedOrigins(List.of(
+                "http://localhost:5173",
+                "http://localhost:5174",
+                "https://foodies-frontend-0rgt.onrender.com" // 👈 CRITICAL ADDITION
+        ));
+
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
