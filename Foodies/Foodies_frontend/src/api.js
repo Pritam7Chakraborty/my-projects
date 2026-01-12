@@ -4,7 +4,7 @@ import axios from "axios";
 // If running in Docker (production), use relative path so Nginx handles it.
 const BASE_URL = import.meta.env.MODE === "development" 
   ? "http://localhost:8080" 
-  : ""; 
+  : "https://foodie-backend-bjlv.onrender.com"; 
 
 const api = axios.create({
   baseURL: BASE_URL,
