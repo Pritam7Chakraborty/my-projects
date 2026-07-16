@@ -13,3 +13,13 @@ def upload_file(file_bytes: bytes, file_name: str, file_type: str,content_type: 
         is_private_file = False,
         use_unique_file_name = True,
     )
+
+    return result.url
+
+def get_variants(base_url: str) -> dict:
+    """"Return 3 sizes variabt URLs using ImageKit Transformations."""
+    return{
+        "Youtube": f"{base_url}?tr=w-1280,h-720,c-maintain_ratio,fo_auto",
+        "shorts": f"{base_url}?tr=w-1080,h-1920,c-maintain_ratio,fo_auto",
+        "square": f"{base_url}?tr=w-1080,h-1080,c-maintain_ratio,fo_auto",
+    }
