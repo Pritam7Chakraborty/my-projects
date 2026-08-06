@@ -1,8 +1,8 @@
 package com.learningComponents.chat.config;
 
-import com.learningComponents.chat.chat.ChatMessage;
-import com.learningComponents.chat.chat.MessageType;
-import jakarta.websocket.Session;
+import com.learningComponents.chat.user.Status;
+import com.learningComponents.chat.user.User;
+import com.learningComponents.chat.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
@@ -16,21 +16,22 @@ import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 @Slf4j
 public class WebSocketEventListener {
 
-    private final SimpMessageSendingOperations messageTemplate;
+    private final UserRepository userRepository;
+    private final SimpMessageSendingOperations messagingTemplate;
+
     @EventListener
-    public void handleWebSocketDisconnectListener(
-            SessionDisconnectEvent event
-    ){
+    public void handleWebSocketDisconnectListener(SessionDisconnectEvent event) {
         StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(event.getMessage());
         String username = (String) headerAccessor.getSessionAttributes().get("username");
-        if (username != null){
-            log.info("User disconnceted: {}", username);
-            var chatMessage = ChatMessage.builder()
-                    .type(MessageType.LEAVE)
-                    .sender(username)
-                    .build();
-            messageTemplate.convertAndSend("/topic/public",chatMessage);
+
+        if (username != null) {
+            log.info("User Disconnected: {}", username);
+
+            // Update database status to OFFLINE
+            userRepository.findByUsername(username).ifPresent(user -> {
+                user.setStatus(Status.OFFLINE);
+                userRepository.save(user);
+            });
         }
     }
-
 }

@@ -1,17 +1,29 @@
 package com.learningComponents.chat.chat;
 
+import jakarta.persistence.*;
 import lombok.*;
-
-import java.awt.*;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
+@Entity
+@Table(name = "messages")
 public class ChatMessage {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
     private String content;
     private String sender;
+    private String recipient;
+    private Boolean isRead = false;
+
+    @Enumerated(EnumType.STRING)
     private MessageType type;
+
+    private LocalDateTime timestamp;
 }
