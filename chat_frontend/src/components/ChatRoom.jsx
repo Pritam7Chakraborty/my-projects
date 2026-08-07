@@ -67,7 +67,7 @@ const ChatRoom = ({ token, username }) => {
   const [connected, setConnected] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  
+
   // --- NEW STATES FOR UNREAD & TYPING ---
   const [unreadCounts, setUnreadCounts] = useState({});
   const [isTyping, setIsTyping] = useState(false);
@@ -75,7 +75,7 @@ const ChatRoom = ({ token, username }) => {
 
   const stompClientRef = useRef(null);
   const messagesEndRef = useRef(null);
-  
+
   const selectedUserRef = useRef(selectedUser);
   useEffect(() => {
     selectedUserRef.current = selectedUser;
@@ -93,7 +93,7 @@ const ChatRoom = ({ token, username }) => {
   }, []);
 
   const fetchChatHistory = useCallback(() => {
-    const endpoint = selectedUser 
+    const endpoint = selectedUser
       ? `/api/messages/private/${username}/${selectedUser.username}`
       : "/api/messages/public";
 
@@ -123,8 +123,8 @@ const ChatRoom = ({ token, username }) => {
           destination: "/app/chat.read",
           body: JSON.stringify({ reader: username, sender: user.username })
         });
-        
-        setMessages((prev) => prev.map(msg => 
+
+        setMessages((prev) => prev.map(msg =>
           msg.sender === user.username ? { ...msg, read: true } : msg
         ));
       }
@@ -161,7 +161,7 @@ const ChatRoom = ({ token, username }) => {
         // Private message listener
         client.subscribe(`/user/${username}/queue/messages`, (payload) => {
           const message = JSON.parse(payload.body);
-          
+
           if (selectedUserRef.current && message.sender === selectedUserRef.current.username) {
              setMessages((prev) => [...prev, message]);
              client.publish({
@@ -180,9 +180,9 @@ const ChatRoom = ({ token, username }) => {
         // Read receipt listener
         client.subscribe(`/user/${username}/queue/receipts`, (payload) => {
           const receipt = JSON.parse(payload.body);
-          setMessages((prev) => prev.map(msg => 
+          setMessages((prev) => prev.map(msg =>
             (msg.sender === username && msg.recipient === receipt.reader)
-              ? { ...msg, read: true } 
+              ? { ...msg, read: true }
               : msg
           ));
         });
@@ -231,8 +231,8 @@ const ChatRoom = ({ token, username }) => {
   const sendMessage = (e) => {
     e.preventDefault();
     if (messageInput.trim() && stompClientRef.current?.connected) {
-      const destination = selectedUser ? `/app/chat.private` : "/app/chat.sendMessage"; 
-      
+      const destination = selectedUser ? `/app/chat.private` : "/app/chat.sendMessage";
+
       const chatMessage = {
         sender: username,
         content: messageInput,
@@ -276,7 +276,7 @@ const ChatRoom = ({ token, username }) => {
   const getDisplayColor = (targetUsername) => {
     const profile = getUserProfile(targetUsername);
     if (profile?.themeColor) return profile.themeColor;
-    
+
     const palette = ["#E8A33D", "#6FCF97", "#7B9FE0", "#E88F6E", "#B08BE0", "#5FC4C9"];
     let hash = 0;
     for (let i = 0; i < targetUsername.length; i++) hash = 31 * hash + targetUsername.charCodeAt(i);
@@ -289,10 +289,10 @@ const ChatRoom = ({ token, username }) => {
   return (
     <div className="flex h-screen w-full overflow-hidden" style={{ background: COLORS.ink, fontFamily: "'Inter', sans-serif" }}>
       <style>{FONT_IMPORT}</style>
-      
-      <SettingsModal 
-        isOpen={isSettingsOpen} 
-        onClose={() => setIsSettingsOpen(false)} 
+
+      <SettingsModal
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
         currentUser={currentUser}
         onProfileUpdate={fetchActiveUsers}
       />
@@ -303,7 +303,7 @@ const ChatRoom = ({ token, username }) => {
           <div style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 11, letterSpacing: "0.14em", color: COLORS.brass, textTransform: "uppercase" }}>
             Roster · {activeUsers.length} online
           </div>
-          
+
           {currentUser && (
             <div className="mt-4 flex items-center gap-3 p-2.5 rounded-xl shadow-sm relative group" style={{ background: "rgba(255,255,255,0.03)", border: `1px solid ${COLORS.cardBorder}` }}>
               <div
@@ -325,8 +325,8 @@ const ChatRoom = ({ token, username }) => {
                     <span style={{ color: COLORS.sage, fontSize: 9, fontWeight: 500, letterSpacing: "0.05em", textTransform: "uppercase" }}>Active</span>
                 </div>
               </div>
-              
-              <button 
+
+              <button
                 onClick={() => setIsSettingsOpen(true)}
                 className="ml-auto text-gray-400 hover:text-white transition-colors"
                 title="Profile Settings"
@@ -442,10 +442,10 @@ const ChatRoom = ({ token, username }) => {
                       <span className="flex items-center gap-1.5" style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 10, color: COLORS.mutedDim, marginBottom: 4, padding: "0 2px" }}>
                         {getDisplayName(msg.sender)}
                         {msg.sender === username && selectedUser && (
-                            <span style={{ 
-                              color: msg.read || msg.isRead ? COLORS.sage : COLORS.mutedDim, 
-                              fontSize: 13, 
-                              letterSpacing: "-0.2em", 
+                            <span style={{
+                              color: msg.read || msg.isRead ? COLORS.sage : COLORS.mutedDim,
+                              fontSize: 13,
+                              letterSpacing: "-0.2em",
                               transform: "translateY(1px)",
                               transition: "color 0.3s ease"
                             }}>
